@@ -12,9 +12,8 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
     app.config['PORT'] = os.getenv('PORT', 5000)
     
-    # Registrar rutas (las agregaremos después)
-    # from src.routes.auth_routes import auth_bp
-    # app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    from src.routes.auth_routes import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
     
     @app.route('/health', methods=['GET'])
     def health():
