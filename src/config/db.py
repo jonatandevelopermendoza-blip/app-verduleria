@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Database:
-    """Manejo de conexiones a MySQL con pool simple"""
+    """Manejo de conexiones a MySQL"""
     
     @staticmethod
     def get_connection():
@@ -32,7 +32,11 @@ class Database:
                     result = cursor.fetchall()
                 else:
                     connection.commit()
-                    result = cursor.rowcount
+                    # Si es INSERT, retorna el ID generado
+                    if sql.strip().upper().startswith('INSERT'):
+                        result = cursor.lastrowid
+                    else:
+                        result = cursor.rowcount
             return result
         finally:
             connection.close()

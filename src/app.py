@@ -15,6 +15,9 @@ def create_app():
     from src.routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     
+    from src.routes.empleados_routes import empleados_bp
+    app.register_blueprint(empleados_bp, url_prefix='/api/empleados')
+    
     @app.route('/health', methods=['GET'])
     def health():
         """Endpoint de prueba para verificar que Flask corre"""

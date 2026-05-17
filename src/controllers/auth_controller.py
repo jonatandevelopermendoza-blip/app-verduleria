@@ -28,6 +28,10 @@ def generar_token(persona_id, usuario_id, rol, primer_login, es_token_cambio=Fal
     
     return jwt.encode(payload, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
 
+def hash_password(password):
+    """Genera un hash bcrypt de la contraseña"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(10)).decode('utf-8')
+
 def login():
     """Autenticación de usuario"""
     data = request.get_json()

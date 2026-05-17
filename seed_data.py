@@ -29,9 +29,7 @@ empleados_prueba = [
     }
 ]
 
-def hash_password(password):
-    """Genera un hash bcrypt de la contraseña"""
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(10)).decode('utf-8')
+from src.controllers.auth_controller import hash_password
 
 def insertar_datos():
     connection = pymysql.connect(
