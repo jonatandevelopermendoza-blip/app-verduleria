@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados - Verdulería App</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gestión de Empleados</h1>
+            <div class="nav">
+                <a href="dashboard.html">Inicio</a>
+                <a href="empleados.html">Empleados</a>
+                <a href="asistencias.html">Mis Asistencias</a>
+                <a href="#" id="reporteLink" style="display: none;">Reporte General</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div style="margin-bottom: 20px;">
+                <button id="btnNuevo" style="display: none;">Nuevo Empleado</button>
+            </div>
+            <table id="empleadosTable">
+                <thead>
+                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal para crear/editar empleado -->
+    <div id="empleadoModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Nuevo Empleado</h3>
+            <form id="empleadoForm">
+                <input type="hidden" id="empleadoId">
+                <div class="form-group"><label>Nombre:</label><input type="text" id="nombre" required></div>
+                <div class="form-group"><label>Apellido:</label><input type="text" id="apellido" required></div>
+                <div class="form-group"><label>DNI:</label><input type="text" id="dni" required></div>
+                <div class="form-group"><label>Email:</label><input type="email" id="email" required></div>
+                <div class="form-group"><label>Rol:</label>
+                    <select id="rol"><option value="empleado">Empleado</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Guardar</button>
+                    <button type="button" id="btnCancelar">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        const rol = getUserRol();
+        const isAdmin = rol === 'admin';
+        const isSupervisor = rol === 'supervisor';
+        
+        if (isAdmin || isSupervisor) {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = 'reporte.html';
+        }
+        if (isAdmin) {
+            document.getElementById('btnNuevo').style.display = 'inline-block';
+        }
+        
+        let currentEmpleados = [];
+        
+        async function loadEmpleados() {
+            try {
+                const result = await getEmpleados();
+                currentEmpleados = result.data;
+                const tbody = document.querySelector('#empleadosTable tbody');
+                tbody.innerHTML = '';
+                currentEmpleados.forEach(emp => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = emp.id;
+                    row.insertCell(1).textContent = `${emp.nombre} ${emp.apellido}`;
+                    row.insertCell(2).textContent = emp.email;
+                    row.insertCell(3).innerHTML = `<span class="rol-badge rol-${emp.rol}">${emp.rol}</span>`;
+                    const actions = row.insertCell(4);
+                    
+                    if (isAdmin || isSupervisor) {
+                        const editBtn = document.createElement('button');
+                        editBtn.textContent = 'Editar';
+                        editBtn.onclick = () => editEmpleado(emp);
+                        actions.appendChild(editBtn);
+                    }
+                    if (isAdmin) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'Eliminar';
+                        deleteBtn.className = 'danger';
+                        deleteBtn.onclick = () => deleteEmpleado(emp.id);
+                        actions.appendChild(deleteBtn);
+                        
+                        const rolBtn = document.createElement('button');
+                        rolBtn.textContent = 'Cambiar Rol';
+                        rolBtn.style.marginLeft = '5px';
+                        rolBtn.onclick = () => changeRol(emp);
+                        actions.appendChild(rolBtn);
+                    }
+                });
+            } catch (error) {
+                console.error('Error cargando empleados:', error);
+            }
+        }
+        
+        function editEmpleado(emp) {
+            document.getElementById('modalTitle').textContent = 'Editar Empleado';
+            document.getElementById('empleadoId').value = emp.id;
+            document.getElementById('nombre').value = emp.nombre;
+            document.getElementById('apellido').value = emp.apellido;
+            document.getElementById('dni').value = emp.dni;
+            document.getElementById('email').value = emp.email;
+            document.getElementById('rol').value = emp.rol;
+            document.getElementById('empleadoModal').style.display = 'flex';
+        }
+        
+        async function deleteEmpleado(id) {
+            if (confirm('¿Eliminar este empleado? (baja lógica)')) {
+                try {
+                    await deleteEmpleado(id);
+                    loadEmpleados();
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        }
+        
+        async function changeRol(emp) {
+            const newRol = prompt('Nuevo rol (admin/supervisor/empleado):', emp.rol);
+            if (newRol && ['admin','supervisor','empleado'].includes(newRol)) {
+                try {
+                    await updateRol(emp.id, newRol);
+                    loadEmpleados();
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        }
+        
+        document.getElementById('btnNuevo').addEventListener('click', () => {
+            document.getElementById('modalTitle').textContent = 'Nuevo Empleado';
+            document.getElementById('empleadoForm').reset();
+            document.getElementById('empleadoId').value = '';
+            document.getElementById('empleadoModal').style.display = 'flex';
+        });
+        
+        document.getElementById('btnCancelar').addEventListener('click', () => {
+            document.getElementById('empleadoModal').style.display = 'none';
+        });
+        
+        document.getElementById('empleadoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('empleadoId').value;
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                apellido: document.getElementById('apellido').value,
+                dni: document.getElementById('dni').value,
+                email: document.getElementById('email').value,
+                rol: document.getElementById('rol').value
+            };
+            try {
+                if (id) {
+                    await updateEmpleado(id, data);
+                } else {
+                    await createEmpleado(data);
+                }
+                document.getElementById('empleadoModal').style.display = 'none';
+                loadEmpleados();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        loadEmpleados();
+    </script>
+</body>
+</html>

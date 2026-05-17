@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte General - Verdulería App</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reporte General de Asistencias</h1>
+            <div class="nav">
+                <a href="dashboard.html">Inicio</a>
+                <a href="empleados.html">Empleados</a>
+                <a href="asistencias.html">Mis Asistencias</a>
+                <a href="reporte.html">Reporte General</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="filters">
+                <input type="date" id="fechaDesde" placeholder="Fecha Desde">
+                <input type="date" id="fechaHasta" placeholder="Fecha Hasta">
+                <select id="empleadoId">
+                    <option value="">Todos los empleados</option>
+                </select>
+                <button id="filtrarBtn">Filtrar</button>
+                <button id="limpiarBtn">Limpiar</button>
+            </div>
+            
+            <table id="reporteTable">
+                <thead>
+                    <tr><th>Empleado</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Estado</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        // Verificar permisos
+        const rol = getUserRol();
+        if (rol !== 'admin' && rol !== 'supervisor') {
+            window.location.href = 'dashboard.html';
+        }
+        
+        async function loadEmpleadosSelect() {
+            try {
+                const result = await getEmpleados();
+                const select = document.getElementById('empleadoId');
+                result.data.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.nombre} ${emp.apellido}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error cargando empleados:', error);
+            }
+        }
+        
+        async function loadReporte(fechaDesde = '', fechaHasta = '', empleadoId = '') {
+            try {
+                const result = await getReporteAsistencias(fechaDesde, fechaHasta, empleadoId);
+                const tbody = document.querySelector('#reporteTable tbody');
+                tbody.innerHTML = '';
+                result.data.forEach(a => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = `${a.nombre} ${a.apellido}`;
+                    row.insertCell(1).textContent = a.fecha;
+                    row.insertCell(2).textContent = a.hora_entrada || '-';
+                    row.insertCell(3).textContent = a.hora_salida || '-';
+                    row.insertCell(4).textContent = a.horas_trabajadas || '-';
+                    row.insertCell(5).textContent = a.estado;
+                });
+            } catch (error) {
+                console.error('Error cargando reporte:', error);
+            }
+        }
+        
+        document.getElementById('filtrarBtn').addEventListener('click', () => {
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            const empleadoId = document.getElementById('empleadoId').value;
+            loadReporte(fechaDesde, fechaHasta, empleadoId);
+        });
+        
+        document.getElementById('limpiarBtn').addEventListener('click', () => {
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('empleadoId').value = '';
+            loadReporte();
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        loadEmpleadosSelect();
+        loadReporte();
+    </script>
+</body>
+</html>

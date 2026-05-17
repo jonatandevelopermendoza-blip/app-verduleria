@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Asistencias - Verdulería App</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mis Asistencias</h1>
+            <div class="nav">
+                <a href="dashboard.html">Inicio</a>
+                <a href="empleados.html">Empleados</a>
+                <a href="asistencias.html">Mis Asistencias</a>
+                <a href="#" id="reporteLink" style="display: none;">Reporte General</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="filters">
+                <input type="date" id="fechaDesde" placeholder="Fecha Desde">
+                <input type="date" id="fechaHasta" placeholder="Fecha Hasta">
+                <button id="filtrarBtn">Filtrar</button>
+                <button id="limpiarBtn">Limpiar</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button id="registrarBtn" class="success">Registrar Entrada/Salida</button>
+            </div>
+            
+            <table id="asistenciasTable">
+                <thead>
+                    <tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas Trabajadas</th><th>Estado</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="mensaje" class="alert" style="display: none;"></div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        const rol = getUserRol();
+        if (rol === 'admin' || rol === 'supervisor') {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = 'reporte.html';
+        }
+        
+        async function loadAsistencias(fechaDesde = '', fechaHasta = '') {
+            try {
+                const result = await getMisAsistencias(fechaDesde, fechaHasta);
+                const tbody = document.querySelector('#asistenciasTable tbody');
+                tbody.innerHTML = '';
+                result.data.forEach(a => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = a.fecha;
+                    row.insertCell(1).textContent = a.hora_entrada || '-';
+                    row.insertCell(2).textContent = a.hora_salida || '-';
+                    let horas = '-';
+                    if (a.hora_entrada && a.hora_salida) {
+                        const entrada = new Date(`2000-01-01T${a.hora_entrada}`);
+                        const salida = new Date(`2000-01-01T${a.hora_salida}`);
+                        const diff = (salida - entrada) / (1000 * 3600);
+                        horas = diff.toFixed(1);
+                    }
+                    row.insertCell(3).textContent = horas;
+                    row.insertCell(4).textContent = a.estado;
+                });
+            } catch (error) {
+                console.error('Error cargando asistencias:', error);
+            }
+        }
+        
+        document.getElementById('registrarBtn').addEventListener('click', async () => {
+            const msgDiv = document.getElementById('mensaje');
+            try {
+                const result = await registrarAsistencia();
+                msgDiv.className = 'alert success';
+                msgDiv.textContent = result.message;
+                msgDiv.style.display = 'block';
+                loadAsistencias();
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
+            } catch (error) {
+                msgDiv.className = 'alert error';
+                msgDiv.textContent = error.message;
+                msgDiv.style.display = 'block';
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
+            }
+        });
+        
+        document.getElementById('filtrarBtn').addEventListener('click', () => {
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            loadAsistencias(fechaDesde, fechaHasta);
+        });
+        
+        document.getElementById('limpiarBtn').addEventListener('click', () => {
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            loadAsistencias();
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        loadAsistencias();
+    </script>
+</body>
+</html>

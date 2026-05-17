@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Verdulería App</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Panel de Control</h1>
+            <div class="nav">
+                <a href="dashboard.html">Inicio</a>
+                <a href="empleados.html">Empleados</a>
+                <a href="asistencias.html">Mis Asistencias</a>
+                <a href="#" id="reporteLink" style="display: none;">Reporte General</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <h2>Bienvenido, <span id="userName"></span></h2>
+            <p>Rol: <span id="userRol"></span></p>
+            
+            <div style="margin-top: 30px;">
+                <h3>Registrar Asistencia</h3>
+                <button id="registrarEntrada" class="success">Registrar Entrada/Salida</button>
+                <div id="asistenciaMensaje" class="alert" style="display: none; margin-top: 15px;"></div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3>Últimas Asistencias</h3>
+                <table id="ultimasAsistencias">
+                    <thead>
+                        <tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        // Mostrar/ocultar enlace de reporte según rol
+        const rol = getUserRol();
+        if (rol === 'admin' || rol === 'supervisor') {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = 'reporte.html';
+        }
+        
+        // Cargar datos del usuario y últimas asistencias
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('userRol').textContent = rol;
+            
+            try {
+                const empleados = await getEmpleados();
+                const token = sessionStorage.getItem('token');
+                // Obtener datos del usuario actual (desde el token o desde la lista)
+                // Por simplicidad, mostramos el email del token o buscamos
+                document.getElementById('userName').textContent = 'Empleado';
+                
+                // Cargar últimas 5 asistencias
+                const asistencias = await getMisAsistencias();
+                const tableBody = document.querySelector('#ultimasAsistencias tbody');
+                tableBody.innerHTML = '';
+                asistencias.data.slice(0, 5).forEach(a => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).textContent = a.fecha;
+                    row.insertCell(1).textContent = a.hora_entrada || '-';
+                    row.insertCell(2).textContent = a.hora_salida || '-';
+                    row.insertCell(3).textContent = a.estado;
+                });
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
+        });
+        
+        // Registrar asistencia
+        document.getElementById('registrarEntrada').addEventListener('click', async () => {
+            const msgDiv = document.getElementById('asistenciaMensaje');
+            try {
+                const result = await registrarAsistencia();
+                msgDiv.className = 'alert success';
+                msgDiv.textContent = result.message;
+                msgDiv.style.display = 'block';
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                msgDiv.className = 'alert error';
+                msgDiv.textContent = error.message;
+                msgDiv.style.display = 'block';
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    </script>
+</body>
+</html>
