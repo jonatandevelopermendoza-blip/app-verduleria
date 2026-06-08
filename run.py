@@ -1,8 +1,7 @@
-from src.app import app
+from src.core.app import create_app
 
-if __name__ == "__main__":
-    app.run(
-        host="127.0.0.1",
-        port=int(app.config.get('PORT', 5000)),
-        debug=True  # Solo para desarrollo
-    )
+app = create_app()
+
+if __name__ == '__main__':
+    # debug=False para distribución, True para desarrollo
+    app.run(host='127.0.0.1', port=5000, debug=True)
