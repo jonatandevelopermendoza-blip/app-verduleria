@@ -4,16 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Verdulería App</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .chart-box {
+            flex: 1;
+            min-width: 300px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chart-box h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        canvas {
+            max-height: 300px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            font-size: 28px;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Panel de Control</h1>
             <div class="nav">
-                <a href="dashboard.html">Inicio</a>
-                <a href="empleados.html">Empleados</a>
-                <a href="asistencias.html">Mis Asistencias</a>
+                <a href="/">Inicio</a>
+                <a href="/empleados.html">Empleados</a>
+                <a href="/asistencias.html">Mis Asistencias</a>
                 <a href="#" id="reporteLink" style="display: none;">Reporte General</a>
                 <a href="#" id="logoutBtn">Cerrar Sesión</a>
             </div>
@@ -22,72 +65,169 @@
             <h2>Bienvenido, <span id="userName"></span></h2>
             <p>Rol: <span id="userRol"></span></p>
             
-            <div style="margin-top: 30px;">
-                <h3>Registrar Asistencia</h3>
-                <button id="registrarEntrada" class="success">Registrar Entrada/Salida</button>
-                <div id="asistenciaMensaje" class="alert" style="display: none; margin-top: 15px;"></div>
+            <div class="stats" id="statsContainer">
+                <!-- Estadísticas dinámicas -->
             </div>
             
-            <div style="margin-top: 30px;">
-                <h3>Últimas Asistencias</h3>
-                <table id="ultimasAsistencias">
-                    <thead>
-                        <tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Estado</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div style="margin-bottom: 20px;">
+                <button id="registrarBtn" class="success">Registrar Entrada/Salida</button>
+                <div id="mensaje" class="alert" style="display: none; margin-top: 15px;"></div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-box">
+                    <h3>Asistencias - Últimos 7 días</h3>
+                    <canvas id="asistenciasChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Empleados por Rol</h3>
+                    <canvas id="rolesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-box" style="margin-top: 20px;">
+                <h3>Horas Trabajadas - Últimos 30 días</h3>
+                <canvas id="horasChart"></canvas>
             </div>
         </div>
     </div>
-    <script src="js/api.js"></script>
+    
+    <script src="/js/api.js"></script>
     <script>
-        // Mostrar/ocultar enlace de reporte según rol
         const rol = getUserRol();
+        let asistenciasChart = null;
+        let rolesChart = null;
+        let horasChart = null;
+        
+        // Mostrar enlace de reporte solo para admin/supervisor
         if (rol === 'admin' || rol === 'supervisor') {
             document.getElementById('reporteLink').style.display = 'inline';
-            document.getElementById('reporteLink').href = 'reporte.html';
+            document.getElementById('reporteLink').href = '/reporte.html';
         }
         
-        // Cargar datos del usuario y últimas asistencias
-        document.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('userRol').textContent = rol;
-            
+        document.getElementById('userRol').textContent = rol;
+        document.getElementById('userName').textContent = localStorage.getItem('userName') || 'Empleado';
+        
+        // Cargar estadísticas
+        async function loadStats() {
             try {
-                const empleados = await getEmpleados();
-                const token = sessionStorage.getItem('token');
-                // Obtener datos del usuario actual (desde el token o desde la lista)
-                // Por simplicidad, mostramos el email del token o buscamos
-                document.getElementById('userName').textContent = 'Empleado';
+                // Resumen de empleados
+                const empResponse = await apiRequest('/dashboard/empleados');
+                const statsDiv = document.getElementById('statsContainer');
+                statsDiv.innerHTML = `
+                    <div class="stat-card">
+                        <h4>Empleados Activos</h4>
+                        <h3>${empResponse.data.activos}</h3>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Empleados Inactivos</h4>
+                        <h3>${empResponse.data.inactivos}</h3>
+                    </div>
+                `;
                 
-                // Cargar últimas 5 asistencias
-                const asistencias = await getMisAsistencias();
-                const tableBody = document.querySelector('#ultimasAsistencias tbody');
-                tableBody.innerHTML = '';
-                asistencias.data.slice(0, 5).forEach(a => {
-                    const row = tableBody.insertRow();
-                    row.insertCell(0).textContent = a.fecha;
-                    row.insertCell(1).textContent = a.hora_entrada || '-';
-                    row.insertCell(2).textContent = a.hora_salida || '-';
-                    row.insertCell(3).textContent = a.estado;
+                // Gráfico de roles
+                const roles = empResponse.data.roles;
+                if (rolesChart) rolesChart.destroy();
+                const ctxRoles = document.getElementById('rolesChart').getContext('2d');
+                rolesChart = new Chart(ctxRoles, {
+                    type: 'pie',
+                    data: {
+                        labels: roles.map(r => r.rol),
+                        datasets: [{
+                            data: roles.map(r => r.cantidad),
+                            backgroundColor: ['#e74c3c', '#f39c12', '#3498db']
+                        }]
+                    }
                 });
+                
+                // Resumen de asistencias (últimos 7 días)
+                const asisResponse = await apiRequest('/dashboard/resumen');
+                if (asistenciasChart) asistenciasChart.destroy();
+                const ctxAsis = document.getElementById('asistenciasChart').getContext('2d');
+                asistenciasChart = new Chart(ctxAsis, {
+                    type: 'line',
+                    data: {
+                        labels: asisResponse.data.fechas,
+                        datasets: [
+                            {
+                                label: 'Entradas',
+                                data: asisResponse.data.entradas,
+                                borderColor: '#27ae60',
+                                fill: false
+                            },
+                            {
+                                label: 'Salidas',
+                                data: asisResponse.data.salidas,
+                                borderColor: '#e74c3c',
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true
+                    }
+                });
+                
+                // Horas trabajadas (últimos 30 días)
+                const horasResponse = await apiRequest('/dashboard/horas');
+                if (horasChart) horasChart.destroy();
+                const ctxHoras = document.getElementById('horasChart').getContext('2d');
+                horasChart = new Chart(ctxHoras, {
+                    type: 'bar',
+                    data: {
+                        labels: horasResponse.data.fechas,
+                        datasets: [{
+                            label: 'Horas trabajadas',
+                            data: horasResponse.data.horas,
+                            backgroundColor: '#3498db'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.raw} horas`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Mostrar total de horas
+                const totalHoras = horasResponse.data.total_horas;
+                statsDiv.innerHTML += `
+                    <div class="stat-card">
+                        <h4>Horas (último mes)</h4>
+                        <h3>${totalHoras}</h3>
+                    </div>
+                `;
+                
             } catch (error) {
-                console.error('Error cargando datos:', error);
+                console.error('Error cargando estadísticas:', error);
             }
-        });
+        }
         
         // Registrar asistencia
-        document.getElementById('registrarEntrada').addEventListener('click', async () => {
-            const msgDiv = document.getElementById('asistenciaMensaje');
+        document.getElementById('registrarBtn').addEventListener('click', async () => {
+            const msgDiv = document.getElementById('mensaje');
             try {
                 const result = await registrarAsistencia();
                 msgDiv.className = 'alert success';
                 msgDiv.textContent = result.message;
                 msgDiv.style.display = 'block';
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
+                // Recargar gráficos
+                loadStats();
             } catch (error) {
                 msgDiv.className = 'alert error';
                 msgDiv.textContent = error.message;
                 msgDiv.style.display = 'block';
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
             }
         });
         
@@ -95,6 +235,9 @@
             e.preventDefault();
             logout();
         });
+        
+        // Inicializar
+        loadStats();
     </script>
 </body>
 </html>

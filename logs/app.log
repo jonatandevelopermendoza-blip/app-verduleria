@@ -1,0 +1,73 @@
+2026-06-08 00:21:22 | ERROR    | [ERROR] Error en login | Usuario: admin@verduleria.local | Excepción: no such table: personas
+2026-06-08 00:29:27 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Usuario no existe
+2026-06-08 00:29:41 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Usuario no existe
+2026-06-08 00:32:08 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Usuario no existe
+2026-06-08 00:32:27 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Usuario no existe
+2026-06-08 00:32:45 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Usuario no existe
+2026-06-08 00:33:57 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 00:39:40 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 00:39:49 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Contraseña incorrecta
+2026-06-08 00:59:56 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 00:59:56 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 00:59:57 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 00:59:58 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 00:59:58 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 00:59:58 | WARNING  | [LOGIN_FALLIDO] Usuario: empleado@test.com | Usuario no existe
+2026-06-08 00:59:59 | WARNING  | [LOGIN_FALLIDO] Usuario: noexiste@test.com | Usuario no existe
+2026-06-08 00:59:59 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:00 | WARNING  | [LOGIN_FALLIDO] | Faltan credenciales
+2026-06-08 01:00:01 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:01 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:02 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:02 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:02 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:00:03 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:14 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:15 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:15 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:15 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:16 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:16 | WARNING  | [LOGIN_FALLIDO] Usuario: empleado@test.com | Usuario no existe
+2026-06-08 01:07:17 | WARNING  | [LOGIN_FALLIDO] Usuario: noexiste@test.com | Usuario no existe
+2026-06-08 01:07:17 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:17 | WARNING  | [LOGIN_FALLIDO] | Faltan credenciales
+2026-06-08 01:07:19 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:19 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:20 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:20 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:21 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:07:21 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Usuario no existe
+2026-06-08 01:12:55 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:12:55 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:12:56 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:12:56 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:12:57 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:12:57 | INFO     | [LOGIN_EXITOSO] Usuario: empleado@test.com | Rol: empleado
+2026-06-08 01:12:58 | WARNING  | [LOGIN_FALLIDO] Usuario: noexiste@test.com | Usuario no existe
+2026-06-08 01:12:58 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Contraseña incorrecta
+2026-06-08 01:12:59 | WARNING  | [LOGIN_FALLIDO] | Faltan credenciales
+2026-06-08 01:12:59 | WARNING  | [ACCESO_DENEGADO] | IP: 127.0.0.1, Sin token
+2026-06-08 01:13:00 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:00 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:01 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:02 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:02 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:03 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:13:48 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 01:16:47 | WARNING  | [ACCESO_DENEGADO] | IP: 127.0.0.1, Sin token
+2026-06-08 01:16:47 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:48 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:48 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:49 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:50 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:50 | INFO     | [LOGIN_EXITOSO] Usuario: empleado@test.com | Rol: empleado
+2026-06-08 01:16:50 | WARNING  | [LOGIN_FALLIDO] Usuario: noexiste@test.com | Usuario no existe
+2026-06-08 01:16:51 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@test.com | Contraseña incorrecta
+2026-06-08 01:16:51 | WARNING  | [LOGIN_FALLIDO] | Faltan credenciales
+2026-06-08 01:16:52 | WARNING  | [ACCESO_DENEGADO] | IP: 127.0.0.1, Sin token
+2026-06-08 01:16:53 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:53 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:54 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:55 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:55 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
+2026-06-08 01:16:56 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin

@@ -90,3 +90,22 @@ Proyecto educativo
 
 ---
 
+## Características implementadas
+
+### Versión actual (1.0.0)
+- Autenticación JWT con cambio obligatorio de contraseña
+- CRUD completo de empleados (con roles: admin, supervisor, empleado)
+- Control de asistencias (entrada/salida)
+- Reporte de asistencias con filtros
+- Dashboard con gráficos interactivos (Chart.js)
+- Logging de acciones sensibles
+- Tests unitarios (cobertura básica)
+- Base de datos SQLite (portable)
+
+### Próximas características (roadmap)
+- Módulo de horarios y cálculo de pagos
+- Control de stock y productos
+- Registro de ventas
+- Notificaciones en el perfil
+- Exportación a PDF
+- Rate limiting

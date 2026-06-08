@@ -4,6 +4,7 @@ from flask import request, jsonify
 from src.core.database import Database
 import os
 from datetime import datetime, timedelta
+from src.utils.logger import log_action, log_error
 
 def hash_password(password):
     """Genera un hash bcrypt de la contraseña"""
@@ -34,6 +35,7 @@ def login():
     data = request.get_json()
     
     if not data or not data.get('email') or not data.get('password'):
+        log_action('LOGIN_FALLIDO', details="Faltan credenciales", level='warning')
         return jsonify({"error": "Email y contraseña requeridos"}), 400
     
     email = data.get('email')
@@ -47,37 +49,50 @@ def login():
         WHERE p.email = ?
     """
     
-    result = Database.execute_query(sql, (email,), fetch_one=True)
+    try:
+        result = Database.execute_query(sql, (email,), fetch_one=True)
+        
+        if not result:
+            log_action('LOGIN_FALLIDO', user_email=email, details="Usuario no existe", level='warning')
+            return jsonify({"error": "Credenciales inválidas"}), 401
+        
+        if not result['activo']:
+            log_action('LOGIN_DENEGADO', user_email=email, user_id=result['persona_id'], 
+                      details="Usuario dado de baja", level='warning')
+            return jsonify({"error": "Usuario dado de baja"}), 403
+        
+        if not bcrypt.checkpw(password.encode('utf-8'), result['password_hash'].encode('utf-8')):
+            log_action('LOGIN_FALLIDO', user_email=email, user_id=result['persona_id'], 
+                      details="Contraseña incorrecta", level='warning')
+            return jsonify({"error": "Credenciales inválidas"}), 401
+        
+        # Actualizar último login
+        update_sql = "UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id = ?"
+        Database.execute_query(update_sql, (result['usuario_id'],))
+        
+        log_action('LOGIN_EXITOSO', user_id=result['persona_id'], user_email=email, 
+                  details=f"Rol: {result['rol']}")
+        
+        if result['primer_login']:
+            token = generar_token(result['persona_id'], None, None, True, es_token_cambio=True)
+            return jsonify({
+                "token": token,
+                "requires_change": True,
+                "message": "Debe cambiar su contraseña"
+            }), 200
+        else:
+            token = generar_token(result['persona_id'], result['usuario_id'], result['rol'], False)
+            return jsonify({
+                "token": token,
+                "requires_change": False,
+                "rol": result['rol'],
+                "message": "Login exitoso"
+            }), 200
+            
+    except Exception as e:
+        log_error("Error en login", user_email=email, exception=e)
+        return jsonify({"error": "Error interno del servidor"}), 500
     
-    if not result:
-        return jsonify({"error": "Credenciales inválidas"}), 401
-    
-    if not result['activo']:
-        return jsonify({"error": "Usuario dado de baja"}), 403
-    
-    if not bcrypt.checkpw(password.encode('utf-8'), result['password_hash'].encode('utf-8')):
-        return jsonify({"error": "Credenciales inválidas"}), 401
-    
-    # Actualizar último login
-    update_sql = "UPDATE usuarios SET ultimo_login = CURRENT_TIMESTAMP WHERE id = ?"
-    Database.execute_query(update_sql, (result['usuario_id'],))
-    
-    if result['primer_login']:
-        token = generar_token(result['persona_id'], None, None, True, es_token_cambio=True)
-        return jsonify({
-            "token": token,
-            "requires_change": True,
-            "message": "Debe cambiar su contraseña"
-        }), 200
-    else:
-        token = generar_token(result['persona_id'], result['usuario_id'], result['rol'], False)
-        return jsonify({
-            "token": token,
-            "requires_change": False,
-            "rol": result['rol'],
-            "message": "Login exitoso"
-        }), 200
-
 def cambiar_password():
     # Esta función requiere el middleware token_cambio_requerido
     # La implementaremos después con el middleware correspondiente

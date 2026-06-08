@@ -1,5 +1,7 @@
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
+#from flask_limiter import Limiter
+#from flask_limiter.util import get_remote_address
 from src.core.database import Database
 import os
 
@@ -11,11 +13,19 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-key-change-in-production')
     CORS(app)
     
+    # Configurar rate limiter (sin asignarlo a app.extensions directamente)
+    #limiter = Limiter(
+    #    get_remote_address,
+    #    app=app,
+    #    default_limits=["200 per day", "50 per hour"],
+    #    storage_uri="memory://"
+    #)
+    
     # Inicializar base de datos
     Database.init_db()
     
     # ============================================
-    # RUTAS DEL FRONTEND
+    # RUTAS DEL FRONTEND (igual que antes)
     # ============================================
     
     @app.route('/')
@@ -48,4 +58,7 @@ def create_app():
     app.register_blueprint(empleados_bp, url_prefix='/api/empleados')
     app.register_blueprint(asistencias_bp, url_prefix='/api/asistencias')
     
+    from src.modules.dashboard_module.routes import dashboard_bp
+    app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+
     return app

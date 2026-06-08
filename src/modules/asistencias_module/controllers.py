@@ -3,14 +3,12 @@ from src.core.database import Database
 from datetime import datetime, date
 
 def registrar_asistencia():
-    """POST /asistencias/registrar - Marca entrada o salida del empleado autenticado"""
-    # Por ahora, usamos un ID fijo para pruebas (después vendrá del token)
-    # TODO: Reemplazar con request.persona_id cuando el middleware esté listo
+    """POST /asistencias/registrar - Marca entrada o salida"""
     from flask import session
     persona_id = session.get('persona_id', 1)  # Temporal
     
-    fecha_actual = date.today()
-    hora_actual = datetime.now().time()
+    fecha_actual = date.today().isoformat()
+    hora_actual = datetime.now().strftime('%H:%M:%S')
     
     # Verificar si ya existe registro para hoy
     sql_check = """
@@ -21,7 +19,6 @@ def registrar_asistencia():
     registro = Database.execute_query(sql_check, (persona_id, fecha_actual), fetch_one=True)
     
     if not registro:
-        # No hay registro hoy → registrar entrada
         sql_insert = """
             INSERT INTO asistencias (persona_id, fecha, hora_entrada, estado)
             VALUES (?, ?, ?, 'presente')
@@ -30,24 +27,23 @@ def registrar_asistencia():
         
         return jsonify({
             "success": True,
-            "message": f"Entrada registrada a las {hora_actual.strftime('%H:%M:%S')}"
+            "message": f"Entrada registrada a las {hora_actual}"
         }), 200
     
     elif registro['hora_salida'] is None:
-        # Tiene entrada pero no salida → registrar salida
         sql_update = "UPDATE asistencias SET hora_salida = ? WHERE id = ?"
         Database.execute_query(sql_update, (hora_actual, registro['id']))
         
         return jsonify({
             "success": True,
-            "message": f"Salida registrada a las {hora_actual.strftime('%H:%M:%S')}"
+            "message": f"Salida registrada a las {hora_actual}"
         }), 200
     
     else:
         return jsonify({
             "error": "Ya registraste entrada y salida hoy"
         }), 400
-
+    
 def mis_asistencias():
     """GET /asistencias/mis-asistencias - Obtiene las asistencias del empleado"""
     persona_id = 1  # Temporal, después del token
