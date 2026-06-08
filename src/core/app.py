@@ -60,5 +60,12 @@ def create_app():
     
     from src.modules.dashboard_module.routes import dashboard_bp
     app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+    from src.modules.horarios_module.routes import horarios_bp
+    from src.modules.stock_module.routes import stock_bp
+    from src.modules.ventas_module.routes import ventas_bp
+
+    app.register_blueprint(horarios_bp, url_prefix='/api/horarios')
+    app.register_blueprint(stock_bp, url_prefix='/api/stock')
+    app.register_blueprint(ventas_bp, url_prefix='/api/ventas')
 
     return app

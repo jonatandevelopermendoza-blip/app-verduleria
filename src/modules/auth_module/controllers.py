@@ -94,6 +94,77 @@ def login():
         return jsonify({"error": "Error interno del servidor"}), 500
     
 def cambiar_password():
-    # Esta función requiere el middleware token_cambio_requerido
-    # La implementaremos después con el middleware correspondiente
-    pass
+    """POST /auth/cambiar-password - Cambiar contraseña (requiere token especial)"""
+    from flask import request, jsonify
+    from src.middleware.auth import token_cambio_requerido
+    from src.core.database import Database
+    import bcrypt
+    
+    data = request.get_json()
+    
+    if not data or not data.get('nueva_password'):
+        return jsonify({"error": "Nueva contraseña requerida"}), 400
+    
+    nueva_password = data.get('nueva_password')
+    
+    # Obtener persona_id del token (debe venir del middleware)
+    # Por ahora, lo tomamos del token manualmente
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"error": "Token requerido"}), 401
+    
+    token = auth_header.split(' ')[1] if auth_header.startswith('Bearer ') else None
+    if not token:
+        return jsonify({"error": "Token inválido"}), 401
+    
+    # Decodificar token para obtener persona_id
+    import jwt
+    import os
+    try:
+        payload = jwt.decode(token, os.getenv('JWT_SECRET_KEY', 'secret-key'), algorithms=['HS256'])
+        persona_id = payload.get('persona_id')
+        
+        # Verificar que sea token de cambio
+        if not payload.get('es_token_cambio'):
+            return jsonify({"error": "Se requiere token especial de cambio de contraseña"}), 403
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expirado"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Token inválido"}), 401
+    
+    # Validar longitud mínima
+    if len(nueva_password) < 6:
+        return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+    
+    # Hashear nueva contraseña
+    password_hash = bcrypt.hashpw(
+        nueva_password.encode('utf-8'), 
+        bcrypt.gensalt(10)
+    ).decode('utf-8')
+    
+    # Actualizar contraseña y desactivar primer_login
+    sql_usuarios = "UPDATE usuarios SET password_hash = ? WHERE persona_id = ?"
+    sql_personas = "UPDATE personas SET primer_login = 0 WHERE id = ?"
+    
+    Database.execute_query(sql_usuarios, (password_hash, persona_id))
+    Database.execute_query(sql_personas, (persona_id,))
+    
+    # Generar token normal para uso posterior
+    sql_datos = """
+        SELECT p.rol, u.id as usuario_id
+        FROM personas p
+        JOIN usuarios u ON p.id = u.persona_id
+        WHERE p.id = ?
+    """
+    datos = Database.execute_query(sql_datos, (persona_id,), fetch_one=True)
+    
+    token_normal = generar_token(persona_id, datos['usuario_id'], datos['rol'], False)
+    
+    from src.utils.logger import log_action
+    log_action('CAMBIO_CONTRASENA', user_id=persona_id, level='info')
+    
+    return jsonify({
+        "message": "Contraseña actualizada correctamente",
+        "token": token_normal,
+        "rol": datos['rol']
+    }), 200

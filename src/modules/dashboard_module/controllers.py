@@ -1,10 +1,10 @@
-from flask import jsonify
+from flask import jsonify, request
 from src.core.database import Database
 from datetime import datetime, timedelta
+import calendar
 
 def resumen_asistencias():
     """GET /dashboard/resumen - Estadísticas de asistencias para gráficos"""
-    # Últimos 7 días
     hoy = datetime.now().date()
     hace_7_dias = hoy - timedelta(days=7)
     
@@ -60,34 +60,35 @@ def resumen_empleados():
     
     activos = Database.execute_query(sql_activos, fetch_one=True)
     
+    # Asegurar que activos no sea None
+    if not activos:
+        activos = {'activos': 0, 'inactivos': 0}
+    
     return jsonify({
         "success": True,
         "data": {
             "roles": [{"rol": r['rol'], "cantidad": r['cantidad']} for r in roles],
-            "activos": activos['activos'] if activos else 0,
-            "inactivos": activos['inactivos'] if activos else 0
+            "activos": activos['activos'] if activos['activos'] else 0,
+            "inactivos": activos['inactivos'] if activos['inactivos'] else 0
         }
     }), 200
 
-def resumen_horas_empleado(empleado_id=None):
-    """GET /dashboard/horas - Horas trabajadas por empleado (últimos 30 días)"""
-    from flask import request
-    persona_id = empleado_id or request.persona_id
+def resumen_horas():
+    """GET /dashboard/horas - Horas trabajadas del empleado autenticado (últimos 30 días)"""
+    persona_id = request.persona_id
     
     hace_30_dias = datetime.now().date() - timedelta(days=30)
     
     sql = """
         SELECT 
-            p.nombre,
-            p.apellido,
-            a.fecha,
-            a.hora_entrada,
-            a.hora_salida,
-            (strftime('%s', a.hora_salida) - strftime('%s', a.hora_entrada)) / 3600.0 as horas
-        FROM asistencias a
-        JOIN personas p ON a.persona_id = p.id
-        WHERE a.persona_id = ? AND a.fecha >= ? AND a.hora_entrada IS NOT NULL AND a.hora_salida IS NOT NULL
-        ORDER BY a.fecha
+            fecha,
+            hora_entrada,
+            hora_salida,
+            (strftime('%s', hora_salida) - strftime('%s', hora_entrada)) / 3600.0 as horas
+        FROM asistencias
+        WHERE persona_id = ? AND fecha >= ? 
+            AND hora_entrada IS NOT NULL AND hora_salida IS NOT NULL
+        ORDER BY fecha
     """
     
     asistencias = Database.execute_query(sql, (persona_id, hace_30_dias), fetch_all=True)
@@ -98,8 +99,9 @@ def resumen_horas_empleado(empleado_id=None):
     
     for a in asistencias:
         fechas.append(a['fecha'])
-        horas.append(round(a['horas'] or 0, 1))
-        total_horas += (a['horas'] or 0)
+        horas_trabajadas = round(a['horas'] or 0, 1)
+        horas.append(horas_trabajadas)
+        total_horas += horas_trabajadas
     
     return jsonify({
         "success": True,

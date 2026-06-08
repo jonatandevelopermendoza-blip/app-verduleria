@@ -72,3 +72,15 @@
 2026-06-08 01:16:55 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
 2026-06-08 01:16:56 | INFO     | [LOGIN_EXITOSO] Usuario: admin@test.com | Rol: admin
 2026-06-08 02:01:41 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 12:49:14 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 15:10:05 | INFO     | [LOGIN_EXITOSO] Usuario: ana@verduleria.local | Rol: supervisor
+2026-06-08 15:11:46 | WARNING  | [LOGIN_FALLIDO] Usuario: luis@verduleria.local | Usuario no existe
+2026-06-08 15:12:09 | WARNING  | [LOGIN_FALLIDO] Usuario: luis@verduleria.local | Usuario no existe
+2026-06-08 15:13:07 | WARNING  | [LOGIN_FALLIDO] Usuario: luis@verduleria.local | Usuario no existe
+2026-06-08 15:13:53 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 15:14:35 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-06-08 15:14:45 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-06-08 15:15:31 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-06-08 15:19:32 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-06-08 15:26:20 | INFO     | [CAMBIO_CONTRASENA] Usuario: ID:7
+2026-06-08 15:40:58 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin

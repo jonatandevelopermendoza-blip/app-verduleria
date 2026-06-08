@@ -23,11 +23,12 @@ async function handleLogin(e) {
         const result = await login(email, password);
         
         if (result.requires_change) {
-            // Redirigir a cambio de contraseña
+            // Guardar token temporal y redirigir
             sessionStorage.setItem('temp_token', result.token);
-            window.location.href = 'cambiar-password.html';
+            sessionStorage.removeItem('token');
+            window.location.href = '/cambiar-password.html';
         } else {
-            window.location.href = 'dashboard.html';
+            window.location.href = '/dashboard.html';
         }
     } catch (error) {
         errorDiv.textContent = error.message;
