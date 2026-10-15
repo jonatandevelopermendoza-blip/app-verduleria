@@ -84,3 +84,91 @@
 2026-06-08 15:19:32 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
 2026-06-08 15:26:20 | INFO     | [CAMBIO_CONTRASENA] Usuario: ID:7
 2026-06-08 15:40:58 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 15:42:57 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-06-08 15:43:15 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-06-08 15:43:35 | INFO     | [LOGIN_EXITOSO] Usuario: ana@verduleria.local | Rol: supervisor
+2026-06-08 17:21:45 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 17:27:03 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 17:33:12 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-08 22:52:32 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-09 09:40:18 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-06-09 09:40:25 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-06-09 09:40:42 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin'], Endpoint: /api/horarios/pago
+2026-06-09 09:41:05 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-06-09 09:41:34 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin'], Endpoint: /api/horarios/pago
+2026-06-09 15:01:11 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-09 15:01:22 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-10 08:39:21 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-10 08:39:25 | ERROR    | [ERROR] Error en execute_query: SELECT * FROM gastos_generales WHERE 1=1 ORDER BY fecha DESC | Excepción: no such table: gastos_generales
+2026-06-10 08:39:25 | ERROR    | [ERROR] Error en execute_query: 
+        SELECT 
+            COALESCE(SUM(monto), 0) as total_gastos,
+            categoria,
+            COUNT(*) as cantidad
+        FROM gastos_generales
+        WHERE date(fecha) BETWEEN ? AND ?
+        GROUP BY categoria
+     | Excepción: no such table: gastos_generales
+2026-06-10 08:40:15 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-06-10 08:40:25 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-06-10 08:40:33 | INFO     | [LOGIN_EXITOSO] Usuario: ana@verduleria.local | Rol: supervisor
+2026-06-10 08:40:36 | ERROR    | [ERROR] Error en execute_query: SELECT * FROM gastos_generales WHERE 1=1 ORDER BY fecha DESC | Excepción: no such table: gastos_generales
+2026-06-10 08:40:36 | ERROR    | [ERROR] Error en execute_query: 
+        SELECT 
+            COALESCE(SUM(monto), 0) as total_gastos,
+            categoria,
+            COUNT(*) as cantidad
+        FROM gastos_generales
+        WHERE date(fecha) BETWEEN ? AND ?
+        GROUP BY categoria
+     | Excepción: no such table: gastos_generales
+2026-06-10 09:25:11 | ERROR    | [ERROR] Error en execute_query: SELECT * FROM gastos_generales WHERE 1=1 ORDER BY fecha DESC | Excepción: no such table: gastos_generales
+2026-06-10 09:25:12 | ERROR    | [ERROR] Error en execute_query: 
+        SELECT 
+            COALESCE(SUM(monto), 0) as total_gastos,
+            categoria,
+            COUNT(*) as cantidad
+        FROM gastos_generales
+        WHERE date(fecha) BETWEEN ? AND ?
+        GROUP BY categoria
+     | Excepción: no such table: gastos_generales
+2026-06-10 16:30:09 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-10 16:30:25 | INFO     | [LOGIN_EXITOSO] Usuario: carlos@verduleria.local | Rol: empleado
+2026-06-10 16:30:36 | INFO     | [CAMBIO_CONTRASENA] Usuario: ID:3
+2026-06-10 16:30:48 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 16:41:46 | ERROR    | [ERROR] Error en registro de venta | Usuario: ID:3 | Excepción: near "FOR": syntax error
+2026-06-10 16:41:54 | ERROR    | [ERROR] Error en registro de venta | Usuario: ID:1 | Excepción: near "FOR": syntax error
+2026-06-10 16:42:08 | ERROR    | [ERROR] Error en registro de venta | Usuario: ID:1 | Excepción: near "FOR": syntax error
+2026-06-10 16:42:20 | ERROR    | [ERROR] Error en registro de venta | Usuario: ID:1 | Excepción: near "FOR": syntax error
+2026-06-10 16:45:00 | INFO     | [VENTA_REGISTRADA] Usuario: ID:1 | Factura: F120260610164500 | Total: $2783.0 | Productos: 1
+2026-06-10 16:45:19 | INFO     | [VENTA_REGISTRADA] Usuario: ID:3 | Factura: F120260610164519 | Total: $1815.0 | Productos: 1
+2026-06-10 16:45:35 | INFO     | [VENTA_REGISTRADA] Usuario: ID:1 | Factura: F120260610164535 | Total: $1815.0 | Productos: 1
+2026-06-10 16:45:36 | INFO     | [VENTA_REGISTRADA] Usuario: ID:3 | Factura: F120260610164536 | Total: $1815.0 | Productos: 1
+2026-06-10 16:46:24 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 16:49:28 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 16:52:55 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 16:53:24 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 17:01:33 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/resumen
+2026-06-10 17:01:33 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/gastos
+2026-06-10 17:03:10 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-06-10 17:04:06 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-06-12 13:38:17 | WARNING  | [TOKEN_EXPIRADO] | IP: 127.0.0.1
+2026-06-12 13:38:17 | WARNING  | [TOKEN_EXPIRADO] | IP: 127.0.0.1
+2026-06-12 13:38:17 | WARNING  | [TOKEN_EXPIRADO] | IP: 127.0.0.1
+2026-06-12 16:10:11 | WARNING  | [LOGIN_FALLIDO] Usuario: admin@verduleria.local | Contraseña incorrecta
+2026-06-12 16:10:20 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-07-04 11:00:21 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-07-04 11:08:12 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-07-04 11:08:21 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-07-04 11:08:52 | INFO     | [VENTA_REGISTRADA] Usuario: ID:7 | Factura: F320260704110852 | Total: $6413.0 | Productos: 3
+2026-07-04 11:09:17 | INFO     | [VENTA_REGISTRADA] Usuario: ID:7 | Factura: F420260704110917 | Total: $8591.0 | Productos: 4
+2026-07-04 11:09:39 | INFO     | [VENTA_REGISTRADA] Usuario: ID:7 | Factura: F120260704110939 | Total: $2783.0 | Productos: 1
+2026-07-04 11:09:50 | INFO     | [VENTA_REGISTRADA] Usuario: ID:7 | Factura: F120260704110950 | Total: $2178.0 | Productos: 1
+2026-07-06 18:46:59 | INFO     | [LOGIN_EXITOSO] Usuario: carlos@verduleria.local | Rol: empleado
+2026-07-06 18:49:45 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/resumen
+2026-07-06 18:49:45 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/gastos
+2026-07-06 18:49:48 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:3 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/resumen
+2026-07-06 18:50:07 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-07-06 18:51:04 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-07-06 18:51:11 | INFO     | [LOGIN_EXITOSO] Usuario: ana@verduleria.local | Rol: supervisor
+2026-08-02 19:32:45 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin

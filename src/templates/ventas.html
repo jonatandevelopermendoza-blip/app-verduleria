@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - Verdulería App</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .venta-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .carrito-section {
+            flex: 1;
+            min-width: 300px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .productos-section {
+            flex: 2;
+            min-width: 400px;
+        }
+        .carrito-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .total {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: right;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .buscar-producto {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .producto-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .producto-card:hover {
+            background: #e8f4fd;
+            transform: scale(1.02);
+        }
+        .precio {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .stock {
+            font-size: 12px;
+            color: #666;
+        }
+        .cantidad-input {
+            width: 60px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Registro de Ventas</h1>
+            <div class="nav">
+                <a href="/dashboard.html">Inicio</a>
+                <a href="/empleados.html">Empleados</a>
+                <a href="/asistencias.html">Asistencias</a>
+                <a href="/stock.html">Stock</a>
+                <a href="/ventas.html">Ventas</a>
+                <a href="/horarios.html">Horarios</a>
+                <a href="#" id="reporteLink" style="display: none;">Reportes</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="venta-container">
+                <div class="productos-section">
+                    <div class="buscar-producto">
+                        <input type="text" id="searchProducto" placeholder="Buscar producto..." style="flex:1">
+                        <select id="categoriaVentaFilter">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                    <div id="productosList"></div>
+                </div>
+                
+                <div class="carrito-section">
+                    <h3>Carrito de Venta</h3>
+                    <div id="carritoItems"></div>
+                    <div class="form-group">
+                        <label>Cliente:</label>
+                        <input type="text" id="clienteNombre" placeholder="Consumidor Final">
+                    </div>
+                    <div class="form-group">
+                        <label>Método de Pago:</label>
+                        <select id="metodoPago">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="total">
+                        Total: $<span id="totalCarrito">0.00</span>
+                    </div>
+                    <button id="btnFinalizarVenta" class="success">Finalizar Venta</button>
+                    <button id="btnCancelarVenta">Cancelar</button>
+                    <div id="ventaMensaje" class="alert" style="display: none; margin-top: 15px;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3>Últimas Ventas del Día</h3>
+                <div id="resumenDia"></div>
+                <table id="ventasTable">
+                    <thead><tr><th>#Factura</th><th>Hora</th><th>Cliente</th><th>Total</th><th>Método</th><th>Acciones</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script>
+        const rol = getUserRol();
+        let productos = [];
+        let carrito = [];
+        
+        if (rol === 'admin' || rol === 'supervisor') {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = '/reporte.html';
+        }
+        
+        async function loadCategorias() {
+            try {
+                const result = await apiRequest('/stock/categorias');
+                const catFilter = document.getElementById('categoriaVentaFilter');
+                result.data.forEach(cat => {
+                    catFilter.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                });
+            } catch (error) {
+                console.error('Error cargando categorías:', error);
+            }
+        }
+        
+        async function loadProductos(search = '', categoriaId = '') {
+            let url = '/stock/productos?';
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (categoriaId) url += `categoria_id=${categoriaId}&`;
+            try {
+                const result = await apiRequest(url);
+                productos = result.data;
+                const container = document.getElementById('productosList');
+                container.innerHTML = '';
+                productos.forEach(p => {
+                    if (p.stock_actual > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'producto-card';
+                        div.innerHTML = `
+                            <strong>${p.nombre}</strong><br>
+                            <span class="precio">$${p.precio_venta}</span>
+                            <span class="stock">Stock: ${p.stock_actual}</span>
+                            <br>
+                            <button onclick="agregarAlCarrito(${p.id})">Agregar</button>
+                            <input type="number" id="cantidad-${p.id}" class="cantidad-input" placeholder="Cant" value="1" min="1" max="${p.stock_actual}">
+                        `;
+                        container.appendChild(div);
+                    }
+                });
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+        
+        window.agregarAlCarrito = function(productoId) {
+            const producto = productos.find(p => p.id === productoId);
+            const cantidadInput = document.getElementById(`cantidad-${productoId}`);
+            const cantidad = parseInt(cantidadInput.value) || 1;
+            
+            if (cantidad > producto.stock_actual) {
+                alert(`Stock insuficiente. Solo hay ${producto.stock_actual} unidades.`);
+                return;
+            }
+            
+            const existing = carrito.find(item => item.id === productoId);
+            if (existing) {
+                if (existing.cantidad + cantidad > producto.stock_actual) {
+                    alert(`Stock insuficiente. Solo hay ${producto.stock_actual} unidades.`);
+                    return;
+                }
+                existing.cantidad += cantidad;
+            } else {
+                carrito.push({
+                    id: productoId,
+                    nombre: producto.nombre,
+                    precio: producto.precio_venta,
+                    cantidad: cantidad
+                });
+            }
+            actualizarCarrito();
+        };
+        
+        function actualizarCarrito() {
+            const container = document.getElementById('carritoItems');
+            let total = 0;
+            container.innerHTML = '';
+            carrito.forEach((item, index) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                const div = document.createElement('div');
+                div.className = 'carrito-item';
+                div.innerHTML = `
+                    <span>${item.nombre} x ${item.cantidad}</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                    <button onclick="eliminarDelCarrito(${index})">❌</button>
+                `;
+                container.appendChild(div);
+            });
+            document.getElementById('totalCarrito').textContent = total.toFixed(2);
+        }
+        
+        window.eliminarDelCarrito = function(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
+        };
+        
+        document.getElementById('btnFinalizarVenta').addEventListener('click', async () => {
+            if (carrito.length === 0) {
+                alert('Agregue productos al carrito primero');
+                return;
+            }
+            
+            const venta = {
+                productos: carrito.map(item => ({
+                    producto_id: item.id,
+                    cantidad: item.cantidad
+                })),
+                cliente_nombre: document.getElementById('clienteNombre').value || 'Consumidor Final',
+                metodo_pago: document.getElementById('metodoPago').value
+            };
+            
+            try {
+                const result = await apiRequest('/ventas/', 'POST', venta);
+                const msgDiv = document.getElementById('ventaMensaje');
+                msgDiv.className = 'alert success';
+                msgDiv.textContent = `✅ Venta registrada - Factura: ${result.data.numero_factura} - Total: $${result.data.total}`;
+                msgDiv.style.display = 'block';
+                carrito = [];
+                actualizarCarrito();
+                document.getElementById('clienteNombre').value = '';
+                loadProductos(document.getElementById('searchProducto').value, document.getElementById('categoriaVentaFilter').value);
+                loadUltimasVentas();
+                setTimeout(() => msgDiv.style.display = 'none', 5000);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('btnCancelarVenta').addEventListener('click', () => {
+            carrito = [];
+            actualizarCarrito();
+        });
+        
+        async function loadUltimasVentas() {
+            try {
+                const result = await apiRequest('/ventas/');
+                const tbody = document.querySelector('#ventasTable tbody');
+                tbody.innerHTML = '';
+                result.data.slice(0, 10).forEach(v => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = v.numero_factura;
+                    row.insertCell(1).textContent = new Date(v.fecha).toLocaleTimeString();
+                    row.insertCell(2).textContent = v.cliente_nombre || 'Consumidor Final';
+                    row.insertCell(3).textContent = `$${v.total}`;
+                    row.insertCell(4).textContent = v.metodo_pago;
+                    const viewBtn = document.createElement('button');
+                    viewBtn.textContent = 'Ver';
+                    viewBtn.onclick = () => verDetalleVenta(v.id);
+                    row.insertCell(5).appendChild(viewBtn);
+                });
+            } catch (error) {
+                console.error('Error cargando ventas:', error);
+            }
+        }
+        
+        async function loadResumenDia() {
+            try {
+                const result = await apiRequest('/ventas/reporte/dia');
+                const container = document.getElementById('resumenDia');
+                const resumen = result.data.resumen;
+                container.innerHTML = `
+                    <div style="background:#e8f4fd; padding:15px; border-radius:5px;">
+                        <strong>📊 Resumen del día:</strong><br>
+                        Ventas: ${resumen.cantidad_ventas || 0} | Total: $${resumen.total_ventas || 0} | Promedio: $${(resumen.promedio_venta || 0).toFixed(2)}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error cargando resumen:', error);
+            }
+        }
+        
+        async function verDetalleVenta(ventaId) {
+            try {
+                const result = await apiRequest(`/ventas/${ventaId}`);
+                let detalles = 'Detalle de la venta:\n';
+                result.data.detalles.forEach(d => {
+                    detalles += `\n${d.producto_nombre} x ${d.cantidad} = $${d.subtotal}`;
+                });
+                alert(detalles + `\n\nTotal: $${result.data.venta.total}`);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        document.getElementById('searchProducto').addEventListener('input', () => {
+            loadProductos(document.getElementById('searchProducto').value, document.getElementById('categoriaVentaFilter').value);
+        });
+        document.getElementById('categoriaVentaFilter').addEventListener('change', () => {
+            loadProductos(document.getElementById('searchProducto').value, document.getElementById('categoriaVentaFilter').value);
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        loadCategorias();
+        loadProductos();
+        loadUltimasVentas();
+        loadResumenDia();
+    </script>
+</body>
+</html>

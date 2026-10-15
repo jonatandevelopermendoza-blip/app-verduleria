@@ -40,3 +40,8 @@ def actualizar_stock():
 @rol_requerido(['admin', 'supervisor'])
 def stock_bajo():
     return controllers.stock_bajo()
+
+@stock_bp.route('/tasas-iva', methods=['GET'])
+@token_requerido
+def listar_tasas_iva():
+    return controllers.listar_tasas_iva()

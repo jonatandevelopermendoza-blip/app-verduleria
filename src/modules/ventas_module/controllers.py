@@ -4,91 +4,131 @@ from src.middleware.auth import token_requerido, rol_requerido
 from datetime import datetime
 
 def registrar_venta():
-    """POST /ventas - Registrar una nueva venta"""
+    """POST /ventas - Registrar una nueva venta con IVA por producto"""
     data = request.get_json()
     
     if not data.get('productos') or len(data['productos']) == 0:
         return jsonify({"error": "Se requiere al menos un producto"}), 400
     
-    subtotal = 0
-    detalles = []
+    conn = Database.get_connection()
+    cursor = conn.cursor()
     
-    # Procesar productos y actualizar stock
-    for item in data['productos']:
-        producto_id = item['producto_id']
-        cantidad = item['cantidad']
+    try:
+        cursor.execute("BEGIN TRANSACTION")
         
-        # Obtener precio del producto
-        sql_prod = "SELECT precio_venta, stock_actual FROM productos WHERE id = ?"
-        producto = Database.execute_query(sql_prod, (producto_id,), fetch_one=True)
+        subtotal_neto = 0.0
+        iva_total = 0.0
+        detalles = []
         
-        if not producto:
-            return jsonify({"error": f"Producto {producto_id} no existe"}), 404
+        for item in data['productos']:
+            producto_id = item['producto_id']
+            cantidad = item['cantidad']
+            
+            cursor.execute("""
+                SELECT id, nombre, precio_venta, stock_actual, iva_porcentaje 
+                FROM productos WHERE id = ?
+            """, (producto_id,))
+            producto = cursor.fetchone()
+            
+            if not producto:
+                conn.rollback()
+                return jsonify({"error": f"Producto ID {producto_id} no existe"}), 404
+            
+            # Convertir Row a dict
+            producto = dict(producto)
+            
+            if producto['stock_actual'] < cantidad:
+                conn.rollback()
+                return jsonify({
+                    "error": f"Stock insuficiente para {producto['nombre']}. "
+                             f"Stock actual: {producto['stock_actual']}, solicitado: {cantidad}"
+                }), 400
+            
+            iva_porcentaje = producto.get('iva_porcentaje', 21.0)
+            precio_unitario = producto['precio_venta']
+            subtotal_item = precio_unitario * cantidad
+            iva_item = subtotal_item * (iva_porcentaje / 100)
+            
+            subtotal_neto += subtotal_item
+            iva_total += iva_item
+            
+            detalles.append({
+                'producto_id': producto_id,
+                'producto_nombre': producto['nombre'],
+                'cantidad': cantidad,
+                'precio_unitario': precio_unitario,
+                'subtotal': subtotal_item,
+                'iva_porcentaje': iva_porcentaje,
+                'iva_monto': iva_item
+            })
         
-        if producto['stock_actual'] < cantidad:
-            return jsonify({"error": f"Stock insuficiente para producto ID {producto_id}"}), 400
+        total_bruto = subtotal_neto + iva_total
         
-        subtotal_item = producto['precio_venta'] * cantidad
-        subtotal += subtotal_item
+        # Generar número de factura
+        from datetime import datetime
+        fecha_str = datetime.now().strftime('%Y%m%d%H%M%S')
+        numero_factura = f"F{len(data['productos'])}{fecha_str}"
         
-        detalles.append({
-            'producto_id': producto_id,
-            'cantidad': cantidad,
-            'precio_unitario': producto['precio_venta'],
-            'subtotal': subtotal_item
-        })
+        # Insertar cabecera de venta
+        cursor.execute("""
+            INSERT INTO ventas (numero_factura, persona_id, cliente_nombre, subtotal, iva, total, metodo_pago)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            numero_factura,
+            request.persona_id,
+            data.get('cliente_nombre', 'Consumidor Final'),
+            subtotal_neto,
+            iva_total,
+            total_bruto,
+            data.get('metodo_pago', 'efectivo')
+        ))
+        venta_id = cursor.lastrowid
+        
+        # Insertar detalles y actualizar stock
+        for detalle in detalles:
+            cursor.execute("""
+                INSERT INTO ventas_detalle (venta_id, producto_id, cantidad, precio_unitario, subtotal, iva_porcentaje)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (venta_id, detalle['producto_id'], detalle['cantidad'],
+                  detalle['precio_unitario'], detalle['subtotal'], detalle['iva_porcentaje']))
+            
+            cursor.execute("""
+                UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ?
+            """, (detalle['cantidad'], detalle['producto_id']))
+            
+            cursor.execute("""
+                INSERT INTO movimientos_stock (producto_id, tipo, cantidad, motivo, usuario_id)
+                VALUES (?, 'venta', ?, ?, ?)
+            """, (detalle['producto_id'], detalle['cantidad'],
+                  f"Venta #{numero_factura}", request.persona_id))
+        
+        conn.commit()
+        
+        from src.utils.logger import log_action
+        log_action('VENTA_REGISTRADA', user_id=request.persona_id,
+                  details=f"Factura: {numero_factura} | Neto: ${subtotal_neto} | IVA: ${iva_total} | Total: ${total_bruto}")
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "venta_id": venta_id,
+                "numero_factura": numero_factura,
+                "subtotal_neto": subtotal_neto,
+                "iva_total": iva_total,
+                "total_bruto": total_bruto,
+                "productos": [{'nombre': d['producto_nombre'], 'cantidad': d['cantidad']} for d in detalles]
+            }
+        }), 201
+        
+    except Exception as e:
+        conn.rollback()
+        from src.utils.logger import log_error
+        log_error("Error en registro de venta", user_id=request.persona_id, exception=e)
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
     
-    # Calcular IVA (21% por defecto) y total
-    iva = subtotal * 0.21
-    total = subtotal + iva
-    
-    # Generar número de factura
-    from datetime import datetime
-    fecha_str = datetime.now().strftime('%Y%m%d%H%M%S')
-    numero_factura = f"F{len(detalles)}{fecha_str}"
-    
-    # Insertar cabecera de venta
-    sql_venta = """
-        INSERT INTO ventas (numero_factura, persona_id, cliente_nombre, subtotal, iva, total, metodo_pago)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """
-    venta_id = Database.execute_query(sql_venta, (
-        numero_factura, request.persona_id, data.get('cliente_nombre', 'Consumidor Final'),
-        subtotal, iva, total, data.get('metodo_pago', 'efectivo')
-    ))
-    
-    # Insertar detalles y actualizar stock
-    for detalle in detalles:
-        sql_detalle = """
-            INSERT INTO ventas_detalle (venta_id, producto_id, cantidad, precio_unitario, subtotal)
-            VALUES (?, ?, ?, ?, ?)
-        """
-        Database.execute_query(sql_detalle, (venta_id, detalle['producto_id'], detalle['cantidad'],
-                                             detalle['precio_unitario'], detalle['subtotal']))
-        
-        # Actualizar stock (salida por venta)
-        sql_stock = "UPDATE productos SET stock_actual = stock_actual - ? WHERE id = ?"
-        Database.execute_query(sql_stock, (detalle['cantidad'], detalle['producto_id']))
-        
-        # Registrar movimiento de stock
-        sql_mov = """
-            INSERT INTO movimientos_stock (producto_id, tipo, cantidad, motivo, usuario_id)
-            VALUES (?, 'venta', ?, ?, ?)
-        """
-        Database.execute_query(sql_mov, (detalle['producto_id'], detalle['cantidad'],
-                                        f"Venta #{numero_factura}", request.persona_id))
-    
-    return jsonify({
-        "success": True,
-        "data": {
-            "venta_id": venta_id,
-            "numero_factura": numero_factura,
-            "total": total,
-            "subtotal": subtotal,
-            "iva": iva
-        }
-    }), 201
-
+    finally:
+        conn.close()
+                
 def listar_ventas():
     """GET /ventas - Listar ventas con filtros"""
     fecha_desde = request.args.get('fecha_desde')

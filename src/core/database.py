@@ -15,15 +15,16 @@ class Database:
     
     @staticmethod
     def execute_query(sql, params=None, fetch_one=False, fetch_all=False):
-        """Ejecuta una consulta SQL"""
         conn = Database.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(sql, params or ())
             if fetch_one:
                 result = cursor.fetchone()
+                result = dict(result) if result else None  # Convertir a dict
             elif fetch_all:
                 result = cursor.fetchall()
+                result = [dict(row) for row in result] if result else []  # Convertir a dict
             else:
                 conn.commit()
                 if sql.strip().upper().startswith('INSERT'):
@@ -31,13 +32,9 @@ class Database:
                 else:
                     result = cursor.rowcount
             return result
-        except Exception as e:
-            conn.rollback()
-            log_error(f"Error en execute_query: {sql}", exception=e)
-            raise e
         finally:
             conn.close()
-    
+
     @staticmethod
     def init_db(schema_path=None):
         """Inicializa la base de datos si no existe"""

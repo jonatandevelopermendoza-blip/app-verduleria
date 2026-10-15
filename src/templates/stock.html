@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Stock - Verdulería App</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .stock-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .productos-section {
+            flex: 2;
+            min-width: 400px;
+        }
+        .alertas-section {
+            flex: 1;
+            min-width: 250px;
+        }
+        .alert-card {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .alert-card.critico {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .stock-bajo {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .stock-normal {
+            color: #28a745;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .modal-large {
+            width: 700px;
+            max-width: 90%;
+        }
+        .movimientos-list {
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .movimientos-list table td {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gestión de Stock</h1>
+            <div class="nav">
+                <a href="/dashboard.html">Inicio</a>
+                <a href="/empleados.html">Empleados</a>
+                <a href="/asistencias.html">Asistencias</a>
+                <a href="/stock.html">Stock</a>
+                <a href="/ventas.html">Ventas</a>
+                <a href="/horarios.html">Horarios</a>
+                <a href="#" id="reporteLink" style="display: none;">Reportes</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="stock-container">
+                <!-- Sección de productos -->
+                <div class="productos-section">
+                    <div class="filters">
+                        <input type="text" id="searchInput" placeholder="Buscar producto..." style="flex:1">
+                        <select id="categoriaFilter">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <button id="btnNuevoProducto" class="success" style="display: none;">+ Nuevo Producto</button>
+                        <button id="btnNuevaCategoria" style="display: none;">+ Nueva Categoría</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label>
+                            <input type="checkbox" id="stockBajoFilter"> Mostrar solo productos con stock bajo
+                        </label>
+                    </div>
+                    
+                    <table id="productosTable">
+                        <thead>
+                            <tr><th>ID</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Mínimo</th><th>Precio Venta</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <!-- Sección de alertas -->
+                <div class="alertas-section">
+                    <h3>⚠️ Alertas de Stock Bajo</h3>
+                    <div id="alertasContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Producto -->
+    <div id="productoModal" class="modal">
+        <div class="modal-content modal-large">
+            <h3 id="productoModalTitle">Nuevo Producto</h3>
+            <form id="productoForm">
+                <input type="hidden" id="productoId">
+                <div class="form-group"><label>Nombre:*</label><input type="text" id="prodNombre" required></div>
+                <div class="form-group"><label>Descripción:</label><textarea id="prodDescripcion" rows="2"></textarea></div>
+                <div class="form-group"><label>Categoría:</label>
+                    <select id="prodCategoria"><option value="">Sin categoría</option></select>
+                </div>
+                <div class="form-group"><label>Precio Compra:*</label><input type="number" step="0.01" id="prodPrecioCompra" required></div>
+                <div class="form-group"><label>Precio Venta:*</label><input type="number" step="0.01" id="prodPrecioVenta" required></div>
+                <div class="form-group"><label>Stock Actual:</label><input type="number" id="prodStockActual" value="0"></div>
+                <div class="form-group"><label>Stock Mínimo:</label><input type="number" id="prodStockMinimo" value="0"></div>
+                <div class="form-group"><label>Unidad de Medida:</label>
+                    <select id="prodUnidad"><option value="unidad">Unidad</option><option value="kg">Kilogramo</option><option value="litro">Litro</option><option value="docena">Docena</option></select>
+                </div>
+                <div class="form-group"><label>Código de Barras:</label><input type="text" id="prodCodigo"></div>
+                <div class="modal-buttons">
+                    <button type="submit">Guardar</button>
+                    <button type="button" id="btnCancelarProducto">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para Categoría -->
+    <div id="categoriaModal" class="modal">
+        <div class="modal-content">
+            <h3>Nueva Categoría</h3>
+            <form id="categoriaForm">
+                <div class="form-group"><label>Nombre:*</label><input type="text" id="catNombre" required></div>
+                <div class="form-group"><label>Descripción:</label><textarea id="catDescripcion" rows="2"></textarea></div>
+                <div class="modal-buttons">
+                    <button type="submit">Guardar</button>
+                    <button type="button" id="btnCancelarCategoria">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para Movimiento de Stock -->
+    <div id="movimientoModal" class="modal">
+        <div class="modal-content">
+            <h3>Registrar Movimiento</h3>
+            <form id="movimientoForm">
+                <input type="hidden" id="movProductoId">
+                <div class="form-group"><label>Producto:</label><span id="movProductoNombre"></span></div>
+                <div class="form-group"><label>Tipo:</label>
+                    <select id="movTipo" required>
+                        <option value="entrada">Entrada (Comprar)</option>
+                        <option value="salida">Salida (Consumo/Pérdida)</option>
+                        <option value="ajuste">Ajuste</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Cantidad:*</label><input type="number" id="movCantidad" required></div>
+                <div class="form-group"><label>Motivo:</label><input type="text" id="movMotivo" placeholder="Ej: Compra a proveedor, merma, etc."></div>
+                <div class="modal-buttons">
+                    <button type="submit">Registrar</button>
+                    <button type="button" id="btnCancelarMovimiento">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script>
+        const rol = getUserRol();
+        const isAdmin = rol === 'admin';
+        const isSupervisor = rol === 'supervisor';
+        const puedeEditar = isAdmin || isSupervisor;
+        
+        if (rol === 'admin' || rol === 'supervisor') {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = '/reporte.html';
+        }
+        
+        if (puedeEditar) {
+            document.getElementById('btnNuevoProducto').style.display = 'inline-block';
+            document.getElementById('btnNuevaCategoria').style.display = 'inline-block';
+        }
+        
+        let categorias = [];
+        
+        async function loadCategorias() {
+            try {
+                const result = await apiRequest('/stock/categorias');
+                categorias = result.data;
+                const catSelect = document.getElementById('prodCategoria');
+                const catFilter = document.getElementById('categoriaFilter');
+                catSelect.innerHTML = '<option value="">Sin categoría</option>';
+                catFilter.innerHTML = '<option value="">Todas las categorías</option>';
+                categorias.forEach(cat => {
+                    catSelect.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                    catFilter.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                });
+            } catch (error) {
+                console.error('Error cargando categorías:', error);
+            }
+        }
+        
+        async function loadProductos() {
+            const search = document.getElementById('searchInput').value;
+            const categoriaId = document.getElementById('categoriaFilter').value;
+            const stockBajo = document.getElementById('stockBajoFilter').checked;
+            
+            let url = '/stock/productos?';
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (categoriaId) url += `categoria_id=${categoriaId}&`;
+            if (stockBajo) url += `stock_bajo=true&`;
+            
+            try {
+                const result = await apiRequest(url);
+                const tbody = document.querySelector('#productosTable tbody');
+                tbody.innerHTML = '';
+                result.data.forEach(p => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = p.id;
+                    row.insertCell(1).textContent = p.nombre;
+                    row.insertCell(2).textContent = p.categoria_nombre || '-';
+                    const stockClass = p.stock_actual <= p.stock_minimo ? 'stock-bajo' : 'stock-normal';
+                    row.insertCell(3).innerHTML = `<span class="${stockClass}">${p.stock_actual}</span>`;
+                    row.insertCell(4).textContent = p.stock_minimo;
+                    row.insertCell(5).textContent = `$${p.precio_venta}`;
+                    const actions = row.insertCell(6);
+                    
+                    if (puedeEditar) {
+                        const editBtn = document.createElement('button');
+                        editBtn.textContent = 'Editar';
+                        editBtn.onclick = () => editProducto(p);
+                        actions.appendChild(editBtn);
+                        
+                        const stockBtn = document.createElement('button');
+                        stockBtn.textContent = 'Stock';
+                        stockBtn.style.marginLeft = '5px';
+                        stockBtn.onclick = () => openMovimientoModal(p);
+                        actions.appendChild(stockBtn);
+                    }
+                });
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+        
+        async function loadAlertas() {
+            try {
+                const result = await apiRequest('/stock/alertas');
+                const container = document.getElementById('alertasContainer');
+                if (result.data.length === 0) {
+                    container.innerHTML = '<div class="alert-card">✅ No hay productos con stock bajo</div>';
+                } else {
+                    container.innerHTML = '';
+                    result.data.forEach(p => {
+                        const div = document.createElement('div');
+                        div.className = p.stock_actual === 0 ? 'alert-card critico' : 'alert-card';
+                        div.innerHTML = `
+                            <strong>${p.nombre}</strong><br>
+                            Stock actual: ${p.stock_actual} | Mínimo: ${p.stock_minimo}<br>
+                            <small>${p.categoria_nombre || 'Sin categoría'}</small>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando alertas:', error);
+            }
+        }
+        
+        function editProducto(producto) {
+            document.getElementById('productoModalTitle').textContent = 'Editar Producto';
+            document.getElementById('productoId').value = producto.id;
+            document.getElementById('prodNombre').value = producto.nombre;
+            document.getElementById('prodDescripcion').value = producto.descripcion || '';
+            document.getElementById('prodCategoria').value = producto.categoria_id || '';
+            document.getElementById('prodPrecioCompra').value = producto.precio_compra;
+            document.getElementById('prodPrecioVenta').value = producto.precio_venta;
+            document.getElementById('prodStockActual').value = producto.stock_actual;
+            document.getElementById('prodStockMinimo').value = producto.stock_minimo;
+            document.getElementById('prodUnidad').value = producto.unidad_medida || 'unidad';
+            document.getElementById('prodCodigo').value = producto.codigo_barras || '';
+            document.getElementById('productoModal').style.display = 'flex';
+        }
+        
+        function openMovimientoModal(producto) {
+            document.getElementById('movProductoId').value = producto.id;
+            document.getElementById('movProductoNombre').textContent = `${producto.nombre} (Stock actual: ${producto.stock_actual})`;
+            document.getElementById('movimientoForm').reset();
+            document.getElementById('movimientoModal').style.display = 'flex';
+        }
+        
+        document.getElementById('btnNuevoProducto').addEventListener('click', () => {
+            document.getElementById('productoModalTitle').textContent = 'Nuevo Producto';
+            document.getElementById('productoForm').reset();
+            document.getElementById('productoId').value = '';
+            document.getElementById('productoModal').style.display = 'flex';
+        });
+        
+        document.getElementById('btnNuevaCategoria').addEventListener('click', () => {
+            document.getElementById('categoriaForm').reset();
+            document.getElementById('categoriaModal').style.display = 'flex';
+        });
+        
+        document.getElementById('productoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('productoId').value;
+            const data = {
+                nombre: document.getElementById('prodNombre').value,
+                descripcion: document.getElementById('prodDescripcion').value,
+                categoria_id: document.getElementById('prodCategoria').value || null,
+                precio_compra: parseFloat(document.getElementById('prodPrecioCompra').value),
+                precio_venta: parseFloat(document.getElementById('prodPrecioVenta').value),
+                stock_actual: parseInt(document.getElementById('prodStockActual').value) || 0,
+                stock_minimo: parseInt(document.getElementById('prodStockMinimo').value) || 0,
+                unidad_medida: document.getElementById('prodUnidad').value,
+                codigo_barras: document.getElementById('prodCodigo').value || null
+            };
+            try {
+                if (id) {
+                    await apiRequest(`/stock/productos/${id}`, 'PUT', data);
+                } else {
+                    await apiRequest('/stock/productos', 'POST', data);
+                }
+                document.getElementById('productoModal').style.display = 'none';
+                loadProductos();
+                loadAlertas();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('movimientoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                producto_id: parseInt(document.getElementById('movProductoId').value),
+                tipo: document.getElementById('movTipo').value,
+                cantidad: parseInt(document.getElementById('movCantidad').value),
+                motivo: document.getElementById('movMotivo').value
+            };
+            try {
+                await apiRequest('/stock/movimientos', 'POST', data);
+                document.getElementById('movimientoModal').style.display = 'none';
+                loadProductos();
+                loadAlertas();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('categoriaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nombre: document.getElementById('catNombre').value,
+                descripcion: document.getElementById('catDescripcion').value
+            };
+            try {
+                await apiRequest('/stock/categorias', 'POST', data);
+                document.getElementById('categoriaModal').style.display = 'none';
+                loadCategorias();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        function closeModals() {
+            document.getElementById('productoModal').style.display = 'none';
+            document.getElementById('categoriaModal').style.display = 'none';
+            document.getElementById('movimientoModal').style.display = 'none';
+        }
+        
+        document.getElementById('btnCancelarProducto').addEventListener('click', closeModals);
+        document.getElementById('btnCancelarCategoria').addEventListener('click', closeModals);
+        document.getElementById('btnCancelarMovimiento').addEventListener('click', closeModals);
+        
+        document.getElementById('searchInput').addEventListener('input', () => loadProductos());
+        document.getElementById('categoriaFilter').addEventListener('change', () => loadProductos());
+        document.getElementById('stockBajoFilter').addEventListener('change', () => loadProductos());
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        loadCategorias();
+        loadProductos();
+        loadAlertas();
+    </script>
+</body>
+</html>

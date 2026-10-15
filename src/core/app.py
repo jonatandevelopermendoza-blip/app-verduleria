@@ -13,20 +13,10 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-key-change-in-production')
     CORS(app)
     
-    # Configurar rate limiter (sin asignarlo a app.extensions directamente)
-    #limiter = Limiter(
-    #    get_remote_address,
-    #    app=app,
-    #    default_limits=["200 per day", "50 per hour"],
-    #    storage_uri="memory://"
-    #)
     
     # Inicializar base de datos
     Database.init_db()
     
-    # ============================================
-    # RUTAS DEL FRONTEND (igual que antes)
-    # ============================================
     
     @app.route('/')
     def index():
@@ -67,5 +57,8 @@ def create_app():
     app.register_blueprint(horarios_bp, url_prefix='/api/horarios')
     app.register_blueprint(stock_bp, url_prefix='/api/stock')
     app.register_blueprint(ventas_bp, url_prefix='/api/ventas')
+
+    from src.modules.finanzas_module.routes import finanzas_bp
+    app.register_blueprint(finanzas_bp, url_prefix='/api/finanzas')
 
     return app

@@ -46,32 +46,48 @@ def listar_productos():
     return jsonify({"success": True, "data": productos}), 200
 
 def crear_producto():
-    """POST /stock/productos - Crear nuevo producto (admin)"""
     data = request.get_json()
     
     campos = ['nombre', 'precio_compra', 'precio_venta']
     for campo in campos:
         if campo not in data:
-            return jsonify({"error": f"Falta campo: {campo}"}), 400
+            return jsonify({"error": f"Falta campo requerido: {campo}"}), 400
+    
+    # Obtener IVA (por defecto 21%)
+    iva_porcentaje = data.get('iva_porcentaje', 21.0)
+    
+    # Validar que el IVA existe en la tabla de tasas
+    iva_valid = Database.execute_query(
+        "SELECT id FROM tasas_iva WHERE porcentaje = ? AND activo = 1",
+        (iva_porcentaje,), fetch_one=True
+    )
+    if not iva_valid:
+        return jsonify({"error": f"Tasa de IVA {iva_porcentaje}% no válida"}), 400
     
     sql = """
         INSERT INTO productos (nombre, descripcion, categoria_id, precio_compra, precio_venta,
-                              stock_actual, stock_minimo, unidad_medida, codigo_barras)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              stock_actual, stock_minimo, unidad_medida, codigo_barras, iva_porcentaje)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         Database.execute_query(sql, (
-            data['nombre'], data.get('descripcion', ''), data.get('categoria_id'),
-            data['precio_compra'], data['precio_venta'],
-            data.get('stock_actual', 0), data.get('stock_minimo', 0),
-            data.get('unidad_medida', 'unidad'), data.get('codigo_barras')
+            data['nombre'],
+            data.get('descripcion', ''),
+            data.get('categoria_id'),
+            data['precio_compra'],
+            data['precio_venta'],
+            data.get('stock_actual', 0),
+            data.get('stock_minimo', 0),
+            data.get('unidad_medida', 'unidad'),
+            data.get('codigo_barras'),
+            iva_porcentaje
         ))
-        return jsonify({"success": True, "message": "Producto creado"}), 201
+        return jsonify({"success": True, "message": "Producto creado correctamente"}), 201
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             return jsonify({"error": "El código de barras ya existe"}), 400
         return jsonify({"error": str(e)}), 500
-
+    
 def actualizar_stock():
     """POST /stock/movimientos - Registrar movimiento de stock"""
     data = request.get_json()
@@ -112,3 +128,49 @@ def stock_bajo():
     """
     productos = Database.execute_query(sql, fetch_all=True)
     return jsonify({"success": True, "data": productos}), 200
+
+def listar_tasas_iva():
+    """GET /stock/tasas-iva - Listar tasas de IVA disponibles"""
+    sql = "SELECT id, nombre, porcentaje FROM tasas_iva WHERE activo = 1 ORDER BY porcentaje"
+    tasas = Database.execute_query(sql, fetch_all=True)
+    return jsonify({"success": True, "data": tasas}), 200
+
+def actualizar_producto(producto_id):
+    data = request.get_json()
+    
+    # Verificar que el producto existe
+    existe = Database.execute_query("SELECT id FROM productos WHERE id = ?", (producto_id,), fetch_one=True)
+    if not existe:
+        return jsonify({"error": "Producto no encontrado"}), 404
+    
+    # Obtener IVA (por defecto 21%)
+    iva_porcentaje = data.get('iva_porcentaje', 21.0)
+    
+    # Validar IVA
+    iva_valid = Database.execute_query(
+        "SELECT id FROM tasas_iva WHERE porcentaje = ? AND activo = 1",
+        (iva_porcentaje,), fetch_one=True
+    )
+    if not iva_valid:
+        return jsonify({"error": f"Tasa de IVA {iva_porcentaje}% no válida"}), 400
+    
+    sql = """
+        UPDATE productos 
+        SET nombre = ?, descripcion = ?, categoria_id = ?, 
+            precio_compra = ?, precio_venta = ?, stock_minimo = ?,
+            unidad_medida = ?, codigo_barras = ?, iva_porcentaje = ?
+        WHERE id = ?
+    """
+    Database.execute_query(sql, (
+        data.get('nombre'),
+        data.get('descripcion', ''),
+        data.get('categoria_id'),
+        data.get('precio_compra'),
+        data.get('precio_venta'),
+        data.get('stock_minimo', 0),
+        data.get('unidad_medida', 'unidad'),
+        data.get('codigo_barras'),
+        iva_porcentaje,
+        producto_id
+    ))
+    return jsonify({"success": True, "message": "Producto actualizado"}), 200

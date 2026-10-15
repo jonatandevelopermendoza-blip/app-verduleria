@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horarios - Verdulería App</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .horario-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .mi-horario {
+            flex: 1;
+            min-width: 300px;
+        }
+        .admin-horarios {
+            flex: 2;
+            min-width: 400px;
+            border-left: 1px solid #ddd;
+            padding-left: 20px;
+        }
+        .horario-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .horario-dia {
+            font-weight: bold;
+            width: 100px;
+        }
+        .calculo-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 10px;
+        }
+        .empleado-select {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gestión de Horarios</h1>
+            <div class="nav">
+                <a href="/dashboard.html">Inicio</a>
+                <a href="/empleados.html">Empleados</a>
+                <a href="/asistencias.html">Asistencias</a>
+                <a href="/stock.html">Stock</a>
+                <a href="/ventas.html">Ventas</a>
+                <a href="/horarios.html">Horarios</a>
+                <a href="#" id="reporteLink" style="display: none;">Reportes</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="horario-container">
+                <div class="mi-horario">
+                    <h3>📅 Mi Horario Semanal</h3>
+                    <div id="miHorario"></div>
+                    
+                    <div class="calculo-container">
+                        <h3>💰 Cálculo de Pago</h3>
+                        <div class="form-group">
+                            <label>Año:</label>
+                            <select id="anioPago"><option>2025</option><option>2026</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mes:</label>
+                            <select id="mesPago">
+                                <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                                <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                                <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                                <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sueldo Base:</label>
+                            <input type="number" id="sueldoBase" value="1000" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Hora Extra:</label>
+                            <input type="number" id="valorHoraExtra" value="15" step="5">
+                        </div>
+                        <button id="calcularPagoBtn">Calcular Pago</button>
+                        <div id="resultadoPago" style="margin-top:15px;"></div>
+                    </div>
+                </div>
+                
+                <div class="admin-horarios" id="adminHorariosSection" style="display: none;">
+                    <h3>👥 Asignar Horarios (Admin/Supervisor)</h3>
+                    <div class="form-group empleado-select">
+                        <label>Empleado:</label>
+                        <select id="empleadoHorario"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Día:</label>
+                        <select id="diaSemana">
+                            <option value="lunes">Lunes</option><option value="martes">Martes</option>
+                            <option value="miercoles">Miércoles</option><option value="jueves">Jueves</option>
+                            <option value="viernes">Viernes</option><option value="sabado">Sábado</option>
+                            <option value="domingo">Domingo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora Entrada:</label>
+                        <input type="time" id="horaInicio" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Hora Salida:</label>
+                        <input type="time" id="horaFin" value="18:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Horas Esperadas:</label>
+                        <input type="number" id="horasEsperadas" step="0.5" value="8">
+                    </div>
+                    <button id="asignarHorarioBtn">Asignar Horario</button>
+                    
+                    <h4 style="margin-top:20px">Horarios Asignados</h4>
+                    <div id="horariosAsignados"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script>
+        const rol = getUserRol();
+        const esAdminSupervisor = rol === 'admin' || rol === 'supervisor';
+        
+        if (rol === 'admin' || rol === 'supervisor') {
+            document.getElementById('reporteLink').style.display = 'inline';
+            document.getElementById('reporteLink').href = '/reporte.html';
+        }
+        
+        if (esAdminSupervisor) {
+            document.getElementById('adminHorariosSection').style.display = 'block';
+            cargarEmpleados();
+        }
+        
+        async function cargarMiHorario() {
+            try {
+                const result = await apiRequest('/horarios/');
+                const container = document.getElementById('miHorario');
+                if (result.data.length === 0) {
+                    container.innerHTML = '<p>No hay horarios asignados. Contacte al administrador.</p>';
+                } else {
+                    container.innerHTML = '';
+                    result.data.forEach(h => {
+                        const div = document.createElement('div');
+                        div.className = 'horario-row';
+                        div.innerHTML = `
+                            <span class="horario-dia">${h.dia_semana}</span>
+                            <span>${h.hora_inicio} - ${h.hora_fin}</span>
+                            <span>${h.horas_esperadas} horas</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando horario:', error);
+            }
+        }
+        
+        async function cargarEmpleados() {
+            try {
+                const result = await getEmpleados();
+                const select = document.getElementById('empleadoHorario');
+                result.data.forEach(emp => {
+                    select.innerHTML += `<option value="${emp.id}">${emp.nombre} ${emp.apellido} (${emp.rol})</option>`;
+                });
+            } catch (error) {
+                console.error('Error cargando empleados:', error);
+            }
+        }
+        
+        async function cargarHorariosEmpleado() {
+            const empleadoId = document.getElementById('empleadoHorario').value;
+            if (!empleadoId) return;
+            try {
+                const result = await apiRequest(`/horarios/empleado/${empleadoId}`);
+                const container = document.getElementById('horariosAsignados');
+                if (result.data.length === 0) {
+                    container.innerHTML = '<p>No hay horarios asignados</p>';
+                } else {
+                    container.innerHTML = '';
+                    result.data.forEach(h => {
+                        const div = document.createElement('div');
+                        div.className = 'horario-row';
+                        div.innerHTML = `
+                            <span class="horario-dia">${h.dia_semana}</span>
+                            <span>${h.hora_inicio} - ${h.hora_fin}</span>
+                            <span>${h.horas_esperadas} horas</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando horarios:', error);
+            }
+        }
+        
+        document.getElementById('asignarHorarioBtn').addEventListener('click', async () => {
+            const data = {
+                persona_id: parseInt(document.getElementById('empleadoHorario').value),
+                dia_semana: document.getElementById('diaSemana').value,
+                hora_inicio: document.getElementById('horaInicio').value,
+                hora_fin: document.getElementById('horaFin').value,
+                horas_esperadas: parseFloat(document.getElementById('horasEsperadas').value)
+            };
+            try {
+                await apiRequest('/horarios/', 'POST', data);
+                alert('Horario asignado correctamente');
+                cargarHorariosEmpleado();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('empleadoHorario').addEventListener('change', cargarHorariosEmpleado);
+        
+        document.getElementById('calcularPagoBtn').addEventListener('click', async () => {
+            const anio = document.getElementById('anioPago').value;
+            const mes = document.getElementById('mesPago').value;
+            const sueldoBase = parseFloat(document.getElementById('sueldoBase').value);
+            const valorHoraExtra = parseFloat(document.getElementById('valorHoraExtra').value);
+            
+            try {
+                const result = await apiRequest('/horarios/pago', 'POST', {
+                    anio: parseInt(anio),
+                    mes: parseInt(mes),
+                    sueldo_base: sueldoBase,
+                    valor_hora_extra: valorHoraExtra
+                });
+                const data = result.data;
+                document.getElementById('resultadoPago').innerHTML = `
+                    <div style="background:#d4edda; padding:15px; border-radius:5px;">
+                        <strong>Período:</strong> ${data.periodo}<br>
+                        <strong>Horas trabajadas:</strong> ${data.horas_trabajadas}<br>
+                        <strong>Horas esperadas:</strong> ${data.horas_esperadas}<br>
+                        <strong>Horas extra:</strong> ${data.horas_extra}<br>
+                        <strong>Sueldo base:</strong> $${data.sueldo_base}<br>
+                        <strong>Pago extra:</strong> $${data.pago_extra}<br>
+                        <strong style="font-size:18px;">Total: $${data.total_pagado}</strong>
+                    </div>
+                `;
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+        
+        cargarMiHorario();
+        if (esAdminSupervisor && document.getElementById('empleadoHorario').value) {
+            cargarHorariosEmpleado();
+        }
+    </script>
+</body>
+</html>
