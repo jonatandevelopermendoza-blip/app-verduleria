@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Sueldos - Verdulería App</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .sueldo-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+        }
+        .sueldo-card .empleado { font-weight: bold; }
+        .sueldo-card .total { font-size: 18px; font-weight: bold; color: #27ae60; }
+        .totales { background: #e8f4fd; padding: 20px; border-radius: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Gestión de Sueldos</h1>
+            <div class="nav">
+                <a href="/">Inicio</a>
+                <a href="/empleados.html">Empleados</a>
+                <a href="/asistencias.html">Asistencias</a>
+                <a href="/stock.html">Stock</a>
+                <a href="/ventas.html">Ventas</a>
+                <a href="/horarios.html">Horarios</a>
+                <a href="/finanzas.html">Finanzas</a>
+                <a href="/sueldos.html">Sueldos</a>
+                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+        <div class="content">
+            <div class="filtros">
+                <label>Año:</label>
+                <select id="anioSueldo"></select>
+                <label>Mes:</label>
+                <select id="mesSueldo"></select>
+                <button id="btnCalcular" class="success">Calcular Sueldos</button>
+                <button id="btnDescargar">Descargar CSV</button>
+            </div>
+            
+            <div id="resultados"></div>
+        </div>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const anioSelect = document.getElementById('anioSueldo');
+            const mesSelect = document.getElementById('mesSueldo');
+            const resultadosDiv = document.getElementById('resultados');
+            
+            // Cargar años
+            const añoActual = new Date().getFullYear();
+            for (let año = añoActual - 2; año <= añoActual + 1; año++) {
+                anioSelect.innerHTML += `<option value="${año}">${año}</option>`;
+            }
+            anioSelect.value = añoActual;
+            
+            // Cargar meses
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            mesSelect.innerHTML = meses.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
+            mesSelect.value = new Date().getMonth() + 1;
+            
+            document.getElementById('btnCalcular').addEventListener('click', async () => {
+                const anio = parseInt(anioSelect.value);
+                const mes = parseInt(mesSelect.value);
+                
+                try {
+                    const result = await apiRequest('/sueldos/calcular', 'POST', { anio, mes });
+                    const data = result.data;
+                    
+                    resultadosDiv.innerHTML = `
+                        <h3>📊 Sueldos - ${data.periodo}</h3>
+                        ${data.empleados.map(e => `
+                            <div class="sueldo-card">
+                                <span class="empleado">${e.nombre} ${e.apellido}</span><br>
+                                Horas: ${e.horas_trabajadas} | Extras: ${e.horas_extra}<br>
+                                Base: $${e.sueldo_base} | Extra: $${e.pago_extra}<br>
+                                <span class="total">Total: $${e.total_pagado}</span>
+                            </div>
+                        `).join('')}
+                        <div class="totales">
+                            <strong>Total empleados: ${data.totales.empleados}</strong><br>
+                            <strong>Total sueldos: $${data.totales.total_sueldos}</strong>
+                        </div>
+                    `;
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            });
+            
+            document.getElementById('btnDescargar').addEventListener('click', () => {
+                const periodo = `${anioSelect.value}-${mesSelect.value.padStart(2, '0')}`;
+                window.location.href = `/api/sueldos/reporte?periodo=${periodo}`;
+            });
+            
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        });
+    </script>
+</body>
+</html>

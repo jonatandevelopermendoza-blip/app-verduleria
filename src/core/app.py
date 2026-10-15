@@ -61,4 +61,8 @@ def create_app():
     from src.modules.finanzas_module.routes import finanzas_bp
     app.register_blueprint(finanzas_bp, url_prefix='/api/finanzas')
 
+    from src.modules.sueldos_module.routes import sueldos_bp
+    app.register_blueprint(sueldos_bp, url_prefix='/api/sueldos')
+
+
     return app

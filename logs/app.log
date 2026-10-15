@@ -172,3 +172,21 @@
 2026-07-06 18:51:04 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
 2026-07-06 18:51:11 | INFO     | [LOGIN_EXITOSO] Usuario: ana@verduleria.local | Rol: supervisor
 2026-08-02 19:32:45 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-08-18 23:14:29 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-08-18 23:14:41 | WARNING  | [LOGIN_FALLIDO] Usuario: carlos@verduleria.local | Contraseña incorrecta
+2026-08-18 23:14:48 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-08-18 23:15:28 | INFO     | [VENTA_REGISTRADA] Usuario: ID:7 | Factura: F320260818231528 | Neto: $5600.0 | IVA: $1176.0 | Total: $6776.0
+2026-08-18 23:15:55 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/stock/alertas
+2026-08-18 23:16:08 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/resumen
+2026-08-18 23:16:08 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/gastos
+2026-08-18 23:16:17 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin', 'supervisor'], Endpoint: /api/finanzas/resumen
+2026-08-18 23:17:06 | WARNING  | [PERMISO_DENEGADO] Usuario: ID:7 | Rol: empleado, Requerido: ['admin'], Endpoint: /api/finanzas/gastos
+2026-08-18 23:17:33 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-08-18 23:40:40 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-08-18 23:59:05 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-08-19 00:04:37 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-09-23 11:16:47 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-08 18:03:28 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-15 01:36:07 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-15 01:46:20 | INFO     | [VENTA_REGISTRADA] Usuario: ID:1 | Factura: F320261015014620 | Neto: $7900.0 | IVA: $1659.0 | Total: $9559.0
+2026-10-15 01:56:37 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
