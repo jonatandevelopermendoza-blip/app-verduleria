@@ -1,46 +1,66 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Asistencias - Verdulería App</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Mis Asistencias</h1>
-            <div class="nav">
-                <a href="dashboard.html">Inicio</a>
-                <a href="empleados.html">Empleados</a>
-                <a href="asistencias.html">Mis Asistencias</a>
-                <a href="#" id="reporteLink" style="display: none;">Reporte General</a>
-                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+{% extends "base.html" %}
+
+{% block title %}Mis Asistencias - Verdulería App{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/css/asistencias.css">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Mis Asistencias</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button class="btn btn-success shadow-sm" id="registrarBtn">
+            <i class="bi bi-fingerprint me-2"></i>Registrar Entrada/Salida
+        </button>
+    </div>
+</div>
+
+<div id="mensaje" class="alert" style="display: none;"></div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+                <div>
+                    <label class="form-label text-muted small mb-1">Desde</label>
+                    <input type="date" class="form-control" id="fechaDesde">
+                </div>
+                <div>
+                    <label class="form-label text-muted small mb-1">Hasta</label>
+                    <input type="date" class="form-control" id="fechaHasta">
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="filtrarBtn">
+                        <i class="bi bi-search me-1"></i> Filtrar
+                    </button>
+                    <button class="btn btn-outline-secondary" id="limpiarBtn">
+                        <i class="bi bi-x-circle me-1"></i> Limpiar
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="content">
-            <div class="filters">
-                <input type="date" id="fechaDesde" placeholder="Fecha Desde">
-                <input type="date" id="fechaHasta" placeholder="Fecha Hasta">
-                <button id="filtrarBtn">Filtrar</button>
-                <button id="limpiarBtn">Limpiar</button>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <button id="registrarBtn" class="success">Registrar Entrada/Salida</button>
-            </div>
-            
-            <table id="asistenciasTable">
-                <thead>
-                    <tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas Trabajadas</th><th>Estado</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
         </div>
     </div>
-    <div id="mensaje" class="alert" style="display: none;"></div>
-    
-    <script src="js/api.js"></script>
-    <script src="../static/js/asistencias.js"></script>
-</body>
-</html>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle" id="asistenciasTable">
+        <thead class="table-light">
+            <tr>
+                <th>Fecha</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Horas Totales</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Se llena con JS -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/js/asistencias.js"></script>
+{% endblock %}

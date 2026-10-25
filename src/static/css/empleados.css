@@ -1,0 +1,17 @@
+/* Estilos específicos para la gestión de empleados */
+.badge-rol-admin { background-color: #dc3545; color: white; }
+.badge-rol-supervisor { background-color: #fd7e14; color: white; }
+.badge-rol-empleado { background-color: #0d6efd; color: white; }
+
+.table-responsive {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.acciones-btn {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}

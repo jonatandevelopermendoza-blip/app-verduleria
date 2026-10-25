@@ -1,0 +1,52 @@
+/* Estilos específicos para la página de ventas */
+.producto-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+.producto-card:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);
+}
+.producto-precio {
+    color: #198754;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+.producto-stock {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* Carrito */
+.carrito-container {
+    position: sticky;
+    top: 70px; /* Debajo del navbar */
+    max-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+}
+.carrito-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 400px;
+}
+.carrito-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.carrito-total {
+    background: #e8f4fd;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: right;
+    color: #0d6efd;
+}

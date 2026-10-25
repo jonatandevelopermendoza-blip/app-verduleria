@@ -1,0 +1,28 @@
+/* Estilos específicos para la página de sueldos */
+.sueldo-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #0d6efd;
+    transition: transform 0.2s;
+}
+.sueldo-card:hover {
+    transform: translateX(5px);
+}
+.sueldo-card .empleado {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #212529;
+}
+.sueldo-card .total {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #198754;
+}
+.totales-box {
+    background: #e8f4fd;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #b6d4fe;
+}

@@ -190,3 +190,28 @@
 2026-10-15 01:36:07 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
 2026-10-15 01:46:20 | INFO     | [VENTA_REGISTRADA] Usuario: ID:1 | Factura: F320261015014620 | Neto: $7900.0 | IVA: $1659.0 | Total: $9559.0
 2026-10-15 01:56:37 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-23 18:52:20 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-23 19:19:25 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-23 19:46:09 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:08:10 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:32:40 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-10-25 17:34:18 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:34:30 | INFO     | [LOGIN_EXITOSO] Usuario: carlos@verduleria.local | Rol: empleado
+2026-10-25 17:34:42 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-10-25 17:34:51 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-10-25 17:34:59 | WARNING  | [LOGIN_FALLIDO] Usuario: ana@verduleria.local | Contraseña incorrecta
+2026-10-25 17:35:08 | WARNING  | [LOGIN_FALLIDO] Usuario: luis@verduleria.local | Usuario no existe
+2026-10-25 17:35:22 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:36:15 | WARNING  | [LOGIN_FALLIDO] Usuario: carmen@verduleria.local | Contraseña incorrecta
+2026-10-25 17:36:21 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:40:12 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-10-25 17:44:53 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:52:39 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 17:53:00 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 17:54:34 | INFO     | [LOGIN_EXITOSO] Usuario: pepe@verduleria.local | Rol: supervisor
+2026-10-25 17:54:44 | INFO     | [CAMBIO_CONTRASENA] Usuario: ID:11
+2026-10-25 18:03:40 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 18:08:56 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-10-25 18:11:22 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 18:12:28 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
+2026-10-25 18:12:44 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin

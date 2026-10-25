@@ -1,0 +1,22 @@
+/* Estilos específicos para la página de asistencias */
+.table-responsive {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.badge-presente {
+    background-color: #198754;
+    color: white;
+}
+
+.badge-ausente {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-justificado {
+    background-color: #ffc107;
+    color: black;
+}

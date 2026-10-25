@@ -1,0 +1,23 @@
+/* Estilos específicos para finanzas */
+.finance-card {
+    border: none;
+    border-radius: 12px;
+    color: white;
+    transition: transform 0.2s;
+}
+.finance-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-ingresos { background: linear-gradient(135deg, #198754, #20c997); }
+.card-egresos { background: linear-gradient(135deg, #dc3545, #f87171); }
+.card-balance { background: linear-gradient(135deg, #0d6efd, #6ea8fe); }
+
+.finance-card h3 { font-size: 2rem; font-weight: bold; margin: 10px 0; }
+.finance-card h6 { opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}

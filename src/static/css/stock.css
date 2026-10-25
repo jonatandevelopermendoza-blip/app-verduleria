@@ -1,0 +1,30 @@
+/* Estilos específicos para stock */
+.stock-bajo {
+    color: #dc3545;
+    font-weight: bold;
+    background-color: #f8d7da;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.stock-normal {
+    color: #198754;
+    font-weight: bold;
+}
+.alert-card {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.alert-card.critico {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+}
+.productos-table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}

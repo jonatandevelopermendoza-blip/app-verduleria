@@ -1,25 +1,12 @@
-// ============================================
-// stock.js - Lógica de la página de stock
-// ============================================
+let productosCache = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     const rol = getUserRol();
-    const isAdmin = rol === 'admin';
-    const isSupervisor = rol === 'supervisor';
-    const puedeEditar = isAdmin || isSupervisor;
+    const puedeEditar = rol === 'admin' || rol === 'supervisor';
     
-    // Mostrar/ocultar botones según rol
     if (puedeEditar) {
         document.getElementById('btnNuevoProducto').style.display = 'inline-block';
         document.getElementById('btnNuevaCategoria').style.display = 'inline-block';
-    }
-    
-    if (rol === 'admin' || rol === 'supervisor') {
-        const reporteLink = document.getElementById('reporteLink');
-        if (reporteLink) {
-            reporteLink.style.display = 'inline';
-            reporteLink.href = '/reporte.html';
-        }
     }
     
     // Cargar datos iniciales
@@ -28,17 +15,19 @@ document.addEventListener('DOMContentLoaded', function() {
     loadProductos();
     loadAlertas();
     
-    // Event listeners
+    // Event listeners Modales
     document.getElementById('btnNuevoProducto').addEventListener('click', () => {
         document.getElementById('productoModalTitle').textContent = 'Nuevo Producto';
         document.getElementById('productoForm').reset();
         document.getElementById('productoId').value = '';
-        document.getElementById('productoModal').style.display = 'flex';
+        document.getElementById('productoModal').classList.add('show');
+        document.getElementById('productoModal').style.display = 'block';
     });
     
     document.getElementById('btnNuevaCategoria').addEventListener('click', () => {
         document.getElementById('categoriaForm').reset();
-        document.getElementById('categoriaModal').style.display = 'flex';
+        document.getElementById('categoriaModal').classList.add('show');
+        document.getElementById('categoriaModal').style.display = 'block';
     });
     
     document.getElementById('productoForm').addEventListener('submit', handleProductoSubmit);
@@ -52,16 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('searchInput').addEventListener('input', () => loadProductos());
     document.getElementById('categoriaFilter').addEventListener('change', () => loadProductos());
     document.getElementById('stockBajoFilter').addEventListener('change', () => loadProductos());
-    
-    document.getElementById('logoutBtn').addEventListener('click', (e) => {
-        e.preventDefault();
-        logout();
-    });
 });
 
-// ============================================
-// FUNCIONES DE CARGA DE DATOS
-// ============================================
+function closeModals() {
+    document.getElementById('productoModal').classList.remove('show');
+    document.getElementById('productoModal').style.display = 'none';
+    document.getElementById('categoriaModal').classList.remove('show');
+    document.getElementById('categoriaModal').style.display = 'none';
+    document.getElementById('movimientoModal').classList.remove('show');
+    document.getElementById('movimientoModal').style.display = 'none';
+}
 
 async function loadTasasIva() {
     try {
@@ -109,40 +98,52 @@ async function loadProductos() {
     if (categoriaId) url += `categoria_id=${categoriaId}&`;
     if (stockBajo) url += `stock_bajo=true&`;
     
+    const tbody = document.querySelector('#productosTable tbody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Cargando...</td></tr>';
+
     try {
         const result = await apiRequest(url);
-        const tbody = document.querySelector('#productosTable tbody');
+        productosCache = result.data;
         tbody.innerHTML = '';
         
         const puedeEditar = getUserRol() === 'admin' || getUserRol() === 'supervisor';
         
+        if (result.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron productos.</td></tr>';
+            return;
+        }
+
         result.data.forEach(p => {
             const row = tbody.insertRow();
-            row.insertCell(0).textContent = p.id;
-            row.insertCell(1).textContent = p.nombre;
+            row.insertCell(0).innerHTML = `<span class="text-muted">#${p.id}</span>`;
+            row.insertCell(1).innerHTML = `<div class="fw-bold">${p.nombre}</div>`;
             row.insertCell(2).textContent = p.categoria_nombre || '-';
             
             const stockClass = p.stock_actual <= p.stock_minimo ? 'stock-bajo' : 'stock-normal';
             row.insertCell(3).innerHTML = `<span class="${stockClass}">${p.stock_actual}</span>`;
             row.insertCell(4).textContent = p.stock_minimo;
-            row.insertCell(5).textContent = `$${p.precio_venta}`;
+            row.insertCell(5).innerHTML = `<span class="text-success fw-bold">$${p.precio_venta}</span>`;
             
             const actions = row.insertCell(6);
+            actions.className = 'text-center';
+            
             if (puedeEditar) {
                 const editBtn = document.createElement('button');
-                editBtn.textContent = 'Editar';
+                editBtn.className = 'btn btn-sm btn-outline-primary me-1';
+                editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
                 editBtn.onclick = () => editProducto(p);
                 actions.appendChild(editBtn);
                 
                 const stockBtn = document.createElement('button');
-                stockBtn.textContent = 'Stock';
-                stockBtn.style.marginLeft = '5px';
+                stockBtn.className = 'btn btn-sm btn-outline-success';
+                stockBtn.innerHTML = '<i class="bi bi-box-seam"></i>';
                 stockBtn.onclick = () => openMovimientoModal(p);
                 actions.appendChild(stockBtn);
             }
         });
     } catch (error) {
         console.error('Error cargando productos:', error);
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error al cargar datos.</td></tr>`;
     }
 }
 
@@ -153,15 +154,17 @@ async function loadAlertas() {
         container.innerHTML = '';
         
         if (result.data.length === 0) {
-            container.innerHTML = '<div class="alert-card">✅ No hay productos con stock bajo</div>';
+            container.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i> Todo el stock está al día.</div>';
         } else {
             result.data.forEach(p => {
                 const div = document.createElement('div');
                 div.className = p.stock_actual === 0 ? 'alert-card critico' : 'alert-card';
                 div.innerHTML = `
-                    <strong>${p.nombre}</strong><br>
-                    Stock actual: ${p.stock_actual} | Mínimo: ${p.stock_minimo}<br>
-                    <small>${p.categoria_nombre || 'Sin categoría'}</small>
+                    <div class="d-flex justify-content-between">
+                        <strong>${p.nombre}</strong>
+                        <span class="badge bg-dark">${p.stock_actual} un.</span>
+                    </div>
+                    <small class="text-muted">${p.categoria_nombre || 'Sin categoría'}</small>
                 `;
                 container.appendChild(div);
             });
@@ -170,10 +173,6 @@ async function loadAlertas() {
         console.error('Error cargando alertas:', error);
     }
 }
-
-// ============================================
-// FUNCIONES DE EDICIÓN Y MODALES
-// ============================================
 
 function editProducto(producto) {
     document.getElementById('productoModalTitle').textContent = 'Editar Producto';
@@ -187,31 +186,29 @@ function editProducto(producto) {
     document.getElementById('prodStockMinimo').value = producto.stock_minimo;
     document.getElementById('prodUnidad').value = producto.unidad_medida || 'unidad';
     document.getElementById('prodCodigo').value = producto.codigo_barras || '';
-    document.getElementById('prodIva').value = producto.iva_porcentaje || 21.0;
-    document.getElementById('productoModal').style.display = 'flex';
+    
+    const ivaSelect = document.getElementById('prodIva');
+    if (ivaSelect) ivaSelect.value = producto.iva_porcentaje ?? 21.0;
+    
+    document.getElementById('productoModal').classList.add('show');
+    document.getElementById('productoModal').style.display = 'block';
 }
 
 function openMovimientoModal(producto) {
     document.getElementById('movProductoId').value = producto.id;
-    document.getElementById('movProductoNombre').textContent = 
-        `${producto.nombre} (Stock actual: ${producto.stock_actual})`;
+    document.getElementById('movProductoNombre').value = producto.nombre;
+    document.getElementById('movStockActual').value = producto.stock_actual;
     document.getElementById('movimientoForm').reset();
-    document.getElementById('movimientoModal').style.display = 'flex';
+    document.getElementById('movimientoModal').classList.add('show');
+    document.getElementById('movimientoModal').style.display = 'block';
 }
-
-function closeModals() {
-    document.getElementById('productoModal').style.display = 'none';
-    document.getElementById('categoriaModal').style.display = 'none';
-    document.getElementById('movimientoModal').style.display = 'none';
-}
-
-// ============================================
-// MANEJADORES DE FORMULARIOS
-// ============================================
 
 async function handleProductoSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('productoId').value;
+    const ivaSelect = document.getElementById('prodIva');
+    const ivaPorcentaje = ivaSelect ? (parseFloat(ivaSelect.value) || 21.0) : 21.0;
+    
     const data = {
         nombre: document.getElementById('prodNombre').value,
         descripcion: document.getElementById('prodDescripcion').value,
@@ -222,7 +219,7 @@ async function handleProductoSubmit(e) {
         stock_minimo: parseInt(document.getElementById('prodStockMinimo').value) || 0,
         unidad_medida: document.getElementById('prodUnidad').value,
         codigo_barras: document.getElementById('prodCodigo').value || null,
-        iva_porcentaje: parseFloat(document.getElementById('prodIva').value) || 21.0
+        iva_porcentaje: ivaPorcentaje
     };
     
     try {
@@ -231,7 +228,7 @@ async function handleProductoSubmit(e) {
         } else {
             await apiRequest('/stock/productos', 'POST', data);
         }
-        document.getElementById('productoModal').style.display = 'none';
+        closeModals();
         loadProductos();
         loadAlertas();
     } catch (error) {
@@ -241,16 +238,23 @@ async function handleProductoSubmit(e) {
 
 async function handleMovimientoSubmit(e) {
     e.preventDefault();
-    const data = {
-        producto_id: parseInt(document.getElementById('movProductoId').value),
-        tipo: document.getElementById('movTipo').value,
-        cantidad: parseInt(document.getElementById('movCantidad').value),
-        motivo: document.getElementById('movMotivo').value
-    };
+    
+    const productoId = parseInt(document.getElementById('movProductoId').value);
+    const tipo = document.getElementById('movTipo').value;
+    const cantidad = parseInt(document.getElementById('movCantidad').value);
+    const motivo = document.getElementById('movMotivo').value;
+    
+    if (tipo === 'salida') {
+        const producto = productosCache.find(p => p.id === productoId);
+        if (producto && cantidad > producto.stock_actual) {
+            alert(`Stock insuficiente. Disponible: ${producto.stock_actual}`);
+            return;
+        }
+    }
     
     try {
-        await apiRequest('/stock/movimientos', 'POST', data);
-        document.getElementById('movimientoModal').style.display = 'none';
+        await apiRequest('/stock/movimientos', 'POST', { producto_id: productoId, tipo, cantidad, motivo });
+        closeModals();
         loadProductos();
         loadAlertas();
     } catch (error) {
@@ -267,7 +271,7 @@ async function handleCategoriaSubmit(e) {
     
     try {
         await apiRequest('/stock/categorias', 'POST', data);
-        document.getElementById('categoriaModal').style.display = 'none';
+        closeModals();
         loadCategorias();
     } catch (error) {
         alert('Error: ' + error.message);

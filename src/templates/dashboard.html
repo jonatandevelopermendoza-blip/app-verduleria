@@ -1,61 +1,185 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Verdulería App</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style src="../static/css/dashboard.css"></style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Panel de Control</h1>
-            <div class="nav">
-                <a href="/dashboard.html">Inicio</a>
-                <a href="/empleados.html">Empleados</a>
-                <a href="/asistencias.html">Mis Asistencias</a>
-                <a href="/stock.html">Stock</a>
-                <a href="/ventas.html">Ventas</a>
-                <a href="/horarios.html">Horarios</a><a href="#" id="reporteLink" style="display: none;">Reporte General</a>
-                <a href="/finanzas.html">Finanzas</a>
-                <a href="/sueldos.html">Sueldos</a>
-                <a href="#" id="logoutBtn">Cerrar Sesión</a>
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Verdulería App{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel Principal</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button class="btn btn-success shadow-sm" id="btnRegistrarAsistencia">
+            <i class="bi bi-fingerprint"></i> Registrar Entrada/Salida
+        </button>
+    </div>
+</div>
+
+<div id="mensajeAsistencia" class="alert" style="display: none;"></div>
+
+<!-- ACCESOS RÁPIDOS (Se generan según el rol) -->
+<div class="row g-3 mb-4" id="accesosRapidos">
+    <!-- Se llena por JS -->
+</div>
+
+<!-- TARJETAS DE RESUMEN -->
+<div class="row g-3 mb-4" id="tarjetasResumen">
+    <!-- Se llenan con JS -->
+</div>
+
+<!-- GRÁFICOS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="bi bi-graph-up text-primary me-2"></i> Asistencias (Últimos 7 días)
             </div>
-        </div>
-        <div class="content">
-            <h2>Bienvenido, <span id="userName"></span></h2>
-            <p>Rol: <span id="userRol"></span></p>
-            
-            <div class="stats" id="statsContainer">
-                <!-- Estadísticas dinámicas -->
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <button id="registrarBtn" class="success">Registrar Entrada/Salida</button>
-                <div id="mensaje" class="alert" style="display: none; margin-top: 15px;"></div>
-            </div>
-            
-            <div class="chart-container">
-                <div class="chart-box">
-                    <h3>Asistencias - Últimos 7 días</h3>
-                    <canvas id="asistenciasChart"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h3>Empleados por Rol</h3>
-                    <canvas id="rolesChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-box" style="margin-top: 20px;">
-                <h3>Horas Trabajadas - Últimos 30 días</h3>
-                <canvas id="horasChart"></canvas>
+            <div class="card-body">
+                <canvas id="asistenciasChart" style="max-height: 250px;"></canvas>
             </div>
         </div>
     </div>
-    
-    <script src="/js/api.js"></script>
-    <script src="../static/js/dashboard.js"></script>
-</body>
-</html>
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="bi bi-pie-chart text-success me-2"></i> Empleados por Rol
+            </div>
+            <div class="card-body">
+                <canvas id="rolesChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    let asistenciasChart = null;
+    let rolesChart = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const rol = getUserRol();
+        
+        // 1. GENERAR ACCESOS RÁPIDOS SEGÚN ROL
+        const accesosDiv = document.getElementById('accesosRapidos');
+        let botonesHTML = '';
+
+        if (rol === 'admin' || rol === 'supervisor') {
+            botonesHTML += `
+                <div class="col-md-4">
+                    <a href="/ventas.html" class="card text-decoration-none h-100 shadow-sm border-0 action-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cart-check text-primary fs-1"></i>
+                            <h5 class="card-title mt-3 text-dark">Nueva Venta</h5>
+                            <p class="text-muted small mb-0">Registrar cobro de productos</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="/stock.html" class="card text-decoration-none h-100 shadow-sm border-0 action-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-box-seam text-warning fs-1"></i>
+                            <h5 class="card-title mt-3 text-dark">Control de Stock</h5>
+                            <p class="text-muted small mb-0">Ver inventario y alertas</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        } 
+        
+        if (rol === 'empleado') {
+            botonesHTML += `
+                <div class="col-md-4">
+                    <a href="/asistencias.html" class="card text-decoration-none h-100 shadow-sm border-0 action-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history text-info fs-1"></i>
+                            <h5 class="card-title mt-3 text-dark">Mis Asistencias</h5>
+                            <p class="text-muted small mb-0">Ver mi historial de horarios</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="/horarios.html" class="card text-decoration-none h-100 shadow-sm border-0 action-card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-calendar-week text-success fs-1"></i>
+                            <h5 class="card-title mt-3 text-dark">Mi Horario</h5>
+                            <p class="text-muted small mb-0">Consultar turnos asignados</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+        
+        accesosDiv.innerHTML = botonesHTML;
+
+        // 2. REGISTRAR ASISTENCIA (Botón superior)
+        document.getElementById('btnRegistrarAsistencia').addEventListener('click', async () => {
+            const msgDiv = document.getElementById('mensajeAsistencia');
+            try {
+                const result = await registrarAsistencia();
+                msgDiv.className = 'alert alert-success shadow-sm';
+                msgDiv.innerHTML = `<i class="bi bi-check-circle me-2"></i> ${result.message}`;
+                msgDiv.style.display = 'block';
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
+            } catch (error) {
+                msgDiv.className = 'alert alert-danger shadow-sm';
+                msgDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i> ${error.message}`;
+                msgDiv.style.display = 'block';
+                setTimeout(() => msgDiv.style.display = 'none', 3000);
+            }
+        });
+
+        // 3. CARGAR DATOS (Solo si es admin o supervisor para no saturar al empleado)
+        if (rol === 'admin' || rol === 'supervisor') {
+            try {
+                const empResponse = await apiRequest('/dashboard/empleados');
+                const statsDiv = document.getElementById('tarjetasResumen');
+                statsDiv.innerHTML = `
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card text-white bg-primary h-100 shadow-sm border-0">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-0 opacity-75">Empleados Activos</h6>
+                                    <h2 class="mb-0 fw-bold">${empResponse.data.activos}</h2>
+                                </div>
+                                <i class="bi bi-people fs-1 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const roles = empResponse.data.roles;
+                if (rolesChart) rolesChart.destroy();
+                rolesChart = new Chart(document.getElementById('rolesChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: roles.map(r => r.rol),
+                        datasets: [{ data: roles.map(r => r.cantidad), backgroundColor: ['#0d6efd', '#198754', '#ffc107'], borderWidth: 0 }]
+                    },
+                    options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                });
+
+                const asisResponse = await apiRequest('/dashboard/resumen');
+                if (asistenciasChart) asistenciasChart.destroy();
+                asistenciasChart = new Chart(document.getElementById('asistenciasChart'), {
+                    type: 'line',
+                    data: {
+                        labels: asisResponse.data.fechas,
+                        datasets: [
+                            { label: 'Entradas', data: asisResponse.data.entradas, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)', fill: true, tension: 0.4 },
+                            { label: 'Salidas', data: asisResponse.data.salidas, borderColor: '#dc3545', backgroundColor: 'transparent', tension: 0.4 }
+                        ]
+                    },
+                    options: { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+                });
+
+            } catch (error) {
+                console.error('Error cargando stats:', error);
+            }
+        } else {
+            // Si es empleado, ocultar gráficos y tarjetas de admin
+            document.getElementById('graficosContainer')?.remove();
+            document.getElementById('tarjetasResumen').style.display = 'none';
+            // Ocultar también el canvas padre de roles y asistencias
+            document.querySelector('.row.g-3.mb-4:has(#asistenciasChart)')?.remove();
+        }
+    });
+</script>
+{% endblock %}

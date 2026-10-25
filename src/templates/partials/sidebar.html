@@ -1,0 +1,80 @@
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link active" href="/dashboard.html">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+    </li>
+    
+    <!-- SECCIÓN: Operaciones Diarias (Visible para TODOS) -->
+    <li class="nav-item mt-3 menu-group" data-roles="admin,supervisor,empleado">
+        <small class="text-muted text-uppercase fw-bold px-2">Operaciones</small>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor,empleado">
+        <a class="nav-link" href="/asistencias.html">
+            <i class="bi bi-clock-history"></i> Asistencias
+        </a>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor,empleado">
+        <a class="nav-link" href="/ventas.html">
+            <i class="bi bi-cart"></i> Ventas
+        </a>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor,empleado">
+        <a class="nav-link" href="/stock.html">
+            <i class="bi bi-box-seam"></i> Stock
+        </a>
+    </li>
+    
+    <!-- SECCIÓN: Administración (Solo Admin y Supervisor) -->
+    <li class="nav-item mt-3 menu-group" data-roles="admin,supervisor">
+        <small class="text-muted text-uppercase fw-bold px-2">Administración</small>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor">
+        <a class="nav-link" href="/empleados.html">
+            <i class="bi bi-people"></i> Empleados
+        </a>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor">
+        <a class="nav-link" href="/horarios.html">
+            <i class="bi bi-calendar-week"></i> Horarios
+        </a>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin,supervisor">
+        <a class="nav-link" href="/reporte.html">
+            <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+        </a>
+    </li>
+    
+    <!-- SECCIÓN: Finanzas (Solo Admin) -->
+    <li class="nav-item menu-item" data-roles="admin">
+        <a class="nav-link" href="/finanzas.html">
+            <i class="bi bi-graph-up"></i> Finanzas
+        </a>
+    </li>
+    <li class="nav-item menu-item" data-roles="admin">
+        <a class="nav-link" href="/sueldos.html">
+            <i class="bi bi-cash-coin"></i> Sueldos
+        </a>
+    </li>
+</ul>
+
+<hr>
+
+<!-- Opciones secundarias (ocultas en un acordeón) -->
+<div class="accordion accordion-flush mt-3" id="accordionMas">
+    <div class="accordion-item bg-transparent">
+        <h2 class="accordion-header bg-transparent">
+            <button class="accordion-button collapsed bg-transparent px-2 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMas">
+                <i class="bi bi-three-dots me-2"></i> Más opciones
+            </button>
+        </h2>
+        <div id="collapseMas" class="accordion-collapse collapse" data-bs-parent="#accordionMas">
+            <div class="accordion-body p-0 pt-2">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link text-secondary" href="#"><i class="bi bi-list-task me-2"></i>Tareas (Próximamente)</a></li>
+                    <li class="nav-item"><a class="nav-link text-secondary" href="#"><i class="bi bi-envelope me-2"></i>Mensajes (Próximamente)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

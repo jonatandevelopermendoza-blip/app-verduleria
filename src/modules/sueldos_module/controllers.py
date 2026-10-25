@@ -5,6 +5,13 @@ import csv
 from io import StringIO
 from datetime import datetime
 import calendar
+import pandas as pd
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
 
 def calcular_sueldo_empleado(persona_id, anio, mes):
     """Calcula el sueldo de un empleado para un período dado"""
@@ -107,18 +114,21 @@ def calcular_sueldos_periodo():
         }
     }), 200
 
+
 def descargar_reporte_sueldos():
-    """GET /sueldos/reporte - Descargar reporte de sueldos en CSV"""
+    """GET /sueldos/reporte - Descargar reporte de sueldos"""
     periodo = request.args.get('periodo', datetime.now().strftime('%Y-%m'))
-    anio, mes = map(int, periodo.split('-'))
+    formato = request.args.get('formato', 'csv') # csv, xlsx, pdf
     
-    # Obtener sueldos calculados para el período
+    # Obtener los datos de la BD
     sql = """
         SELECT 
-            p.id, p.nombre, p.apellido, 
-            pag.horas_trabajadas, pag.horas_esperadas, pag.horas_extra,
-            pag.sueldo_base, pag.pago_extra, pag.total_pagado,
-            pag.estado
+            p.nombre || ' ' || p.apellido as Empleado,
+            pag.horas_trabajadas as Horas,
+            pag.horas_extra as Extras,
+            pag.sueldo_base as Base,
+            pag.pago_extra as Pago_Extra,
+            pag.total_pagado as Total
         FROM pagos pag
         JOIN personas p ON pag.persona_id = p.id
         WHERE pag.periodo = ?
@@ -126,33 +136,80 @@ def descargar_reporte_sueldos():
     """
     sueldos = Database.execute_query(sql, (periodo,), fetch_all=True)
     
-    output = StringIO()
-    writer = csv.writer(output)
+    if not sueldos:
+        return jsonify({"error": "No hay datos para este período"}), 404
+
+    # Convertir a DataFrame de Pandas
+    df = pd.DataFrame(sueldos)
     
-    # Cabecera
-    writer.writerow([
-        'Empleado', 'Horas Trabajadas', 'Horas Esperadas', 'Horas Extra',
-        'Sueldo Base', 'Pago Extra', 'Total', 'Estado'
-    ])
-    
-    for s in sueldos:
-        writer.writerow([
-            f"{s['nombre']} {s['apellido']}",
-            s['horas_trabajadas'],
-            s['horas_esperadas'],
-            s['horas_extra'],
-            s['sueldo_base'],
-            s['pago_extra'],
-            s['total_pagado'],
-            s['estado']
-        ])
-    
-    # Total
-    writer.writerow([])
-    writer.writerow(['TOTAL', '', '', '', '', '', sum(s['total_pagado'] for s in sueldos), ''])
-    
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment; filename=sueldos_{periodo}.csv'}
-    )
+    # Agregar fila de totales
+    total_row = pd.DataFrame([{
+        'Empleado': 'TOTAL', 'Horas': df['Horas'].sum(), 'Extras': df['Extras'].sum(),
+        'Base': df['Base'].sum(), 'Pago_Extra': df['Pago_Extra'].sum(), 'Total': df['Total'].sum()
+    }])
+    df = pd.concat([df, total_row], ignore_index=True)
+
+    # --- GENERAR CSV ---
+    if formato == 'csv':
+        output = BytesIO()
+        df.to_csv(output, index=False, encoding='utf-8-sig')
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment; filename=sueldos_{periodo}.csv'}
+        )
+
+    # --- GENERAR EXCEL (XLSX) ---
+    elif formato == 'xlsx':
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Sueldos')
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename=sueldos_{periodo}.xlsx'}
+        )
+
+    # --- GENERAR PDF ---
+    elif formato == 'pdf':
+        output = BytesIO()
+        doc = SimpleDocTemplate(output, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Título
+        elements.append(Paragraph(f"Reporte de Sueldos - Período {periodo}", styles['Title']))
+        elements.append(Paragraph("<br/><br/>", styles['Normal']))
+        
+        # Tabla
+        data = [df.columns.tolist()] + df.values.tolist()
+        # Formatear números a 2 decimales
+        for i in range(1, len(data)):
+            for j in range(3, 6):
+                data[i][j] = f"${data[i][j]:.2f}"
+        
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -2), colors.HexColor('#f8f9fa')),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#d1e7dd')), # Fila total verde
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        output.seek(0)
+        
+        return Response(
+            output.getvalue(),
+            mimetype='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename=sueldos_{periodo}.pdf'}
+        )
