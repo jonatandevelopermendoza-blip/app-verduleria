@@ -215,3 +215,5 @@
 2026-10-25 18:11:22 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
 2026-10-25 18:12:28 | INFO     | [LOGIN_EXITOSO] Usuario: juan@verduleria.local | Rol: empleado
 2026-10-25 18:12:44 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 21:15:24 | WARNING  | [LOGIN_DENEGADO] Usuario: pepe@verduleria.local | Usuario dado de baja
+2026-10-25 21:15:35 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin

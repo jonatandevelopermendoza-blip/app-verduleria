@@ -1,9 +1,16 @@
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
-#from flask_limiter import Limiter
-#from flask_limiter.util import get_remote_address
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from src.core.database import Database
 import os
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
 
 def create_app():
     app = Flask(__name__,
@@ -13,7 +20,8 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-key-change-in-production')
     CORS(app)
     
-    
+    limiter.init_app(app)
+
     # Inicializar base de datos
     Database.init_db()
     

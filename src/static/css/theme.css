@@ -1,0 +1,42 @@
+/* ============================================
+   TEMA PERSONALIZADO - VERDULERÍA APP
+   ============================================ */
+
+:root {
+    /* COLOR PRINCIPAL (Primary) - Ej: Verde oscuro */
+    --bs-primary: #397949; 
+    /* Variantes del primary para botones */
+    --bs-primary-rgb: 46, 125, 50;
+    
+    /* COLOR DE ÉXITO (Success) - Ej: Verde brillante o Lima */
+    --bs-success: #39B889;
+    --bs-success-rgb: 76, 175, 80;
+    
+    /* COLOR SECUNDARIO (Secondary) - Ej: Un gris cálido o tierra */
+    --bs-secondary: #6c757d;
+    --bs-secondary-rgb: 108, 117, 125;
+
+    /* COLOR DE ADVERTENCIA (Warning) - Ej: Naranja/Mostaza para alertas */
+    --bs-warning: #E5A62F;
+    --bs-warning-rgb: 255, 152, 0;
+}
+
+/* 
+   Opcional: Cambiar el color de la barra superior (navbar) 
+   para que combine con tu paleta 
+*/
+.navbar.bg-dark {
+    background-color: var(--bs-primary) !important;
+}
+
+/* 
+   Opcional: Cambiar el color del sidebar activo 
+*/
+.sidebar .nav-link.active {
+    background-color: var(--bs-primary) !important;
+    color: white !important;
+}
+/* Fondo general de la aplicación */
+body {
+    background-color: #cbd5df !important;
+}
