@@ -112,12 +112,14 @@ function editEmpleado(emp) {
 }
 
 async function deleteEmpleado(id) {
-    if (confirm('¿Está seguro de dar de baja a este empleado? (Baja lógica)')) {
+    if (confirm('¿Está seguro de dar de baja a este empleado? El historial se conservará, pero no podrá iniciar sesión.')) {
         try {
-            await deleteEmpleadoAPI(id); // Asumiendo que así se llama en api.js
+            // Llamamos a la función correcta de api.js
+            await apiRequest(`/empleados/${id}`, 'DELETE');
+            // Recargamos la tabla
             loadEmpleados();
         } catch (error) {
-            alert('Error: ' + error.message);
+            alert('Error al dar de baja: ' + error.message);
         }
     }
 }
