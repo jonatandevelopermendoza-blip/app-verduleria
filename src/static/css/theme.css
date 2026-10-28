@@ -35,6 +35,8 @@
 .sidebar .nav-link.active {
     background-color: var(--bs-primary) !important;
     color: white !important;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+
 }
 /* Fondo general de la aplicación */
 body {

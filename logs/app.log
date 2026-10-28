@@ -217,3 +217,14 @@
 2026-10-25 18:12:44 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
 2026-10-25 21:15:24 | WARNING  | [LOGIN_DENEGADO] Usuario: pepe@verduleria.local | Usuario dado de baja
 2026-10-25 21:15:35 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
+2026-10-25 22:22:19 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:22:27 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:22:35 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:22:41 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:22:46 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:24:50 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:25:02 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:25:06 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:25:10 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:25:17 | WARNING  | [LOGIN_FALLIDO] Usuario: juan@verduleria.local | Contraseña incorrecta
+2026-10-25 22:26:05 | INFO     | [LOGIN_EXITOSO] Usuario: admin@verduleria.local | Rol: admin
